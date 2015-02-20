@@ -3,7 +3,9 @@ package p2pdistribute.swarmmanager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.List;
 
 import p2pdistribute.p2pmeta.ParserException;
 import p2pdistribute.message.MessageParser;
@@ -13,6 +15,7 @@ public class ClientHandler implements Runnable {
 
 	private Socket client;
 	private BufferedReader reader;
+	private PrintWriter writer;
 	
 	SwarmIndex index;
 	
@@ -21,20 +24,25 @@ public class ClientHandler implements Runnable {
 		this.index = index;
 		
 		reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+		writer = new PrintWriter(client.getOutputStream());
 	}
 	
 	@Override
 	public void run() {
 		while(!client.isClosed()) {
-			try {
-				String line = reader.readLine();
-				
-				handleMessage(line);
-				
-			} catch (IOException | ParserException e) {
-				System.out.println("Error when reading from client: " + e.getMessage());
-				SwarmManager.close(client);
-			}
+			readMessage();
+		}
+	}
+
+	public void readMessage() {
+		try {
+			String line = reader.readLine();
+			
+			handleMessage(line);
+			
+		} catch (IOException | ParserException e) {
+			System.out.println("Error when reading from client: " + e.getMessage());
+			SwarmManager.close(client);
 		}
 	}
 
@@ -42,7 +50,7 @@ public class ClientHandler implements Runnable {
 		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
 		
 		if(msg.cmd.equals("register")) {
-			registerClient(msg.metaHash);
+			registerClient(msg);
 		} else if(msg.cmd.equals("request_peers")) {
 			sendPeerList(msg.metaHash);
 		}
@@ -51,16 +59,25 @@ public class ClientHandler implements Runnable {
 	}
 
 	private void sendPeerList(String metaHash) {
-		// TODO Auto-generated method stub
-
-		// "request_peers" (p2pmeta hash): Send list of peers registered to that hash
-			// Sends back a "peers"
+		
+		List<Peer> peers = index.get(metaHash);
+		Peer[] peersArray;
+		
+		if(peers == null) {
+			peersArray = new Peer[0];
+		} else {
+			peersArray = peers.toArray(new Peer[peers.size()]);
+			
+		}
+		
+		SwarmManagerMessage msg = new SwarmManagerMessage("peers", metaHash, peersArray);
+		
+		writer.print(MessageParser.serialiseMessage(msg));
+		writer.flush();
 	}
 
-	private void registerClient(String hash) {
-		// TODO Tidy up comment
-		// "register" (p2pmeta hash): (re)add client to list associated with that hash with timestamp of register event
-		index.registerClient(client.getInetAddress(), client.getPort(), hash);
+	private void registerClient(SwarmManagerMessage msg) {
+		index.registerClient(client.getInetAddress(), msg.getPort(), msg.metaHash);
 	}
 
 }

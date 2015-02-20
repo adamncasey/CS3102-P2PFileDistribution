@@ -1,19 +1,101 @@
 package p2pdistribute.message;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 
 import p2pdistribute.p2pmeta.ParserException;
+import p2pdistribute.swarmmanager.Peer;
 import p2pdistribute.swarmmanager.message.SwarmManagerMessage;
 
 public class MessageParser {
 
-	public static SwarmManagerMessage parseSwarmManageMessage(String line) throws ParserException {
-		// TODO Auto-generated method stub
-		return null;
+	public static String serialiseMessage(Message msg) {
+		JSONObject obj = new JSONObject(msg.getJSON());
+		
+		String line = obj.toJSONString() + "\n";
+		
+		return line;
 	}
 	
+	/**
+	 * Ensures json passed in is well-formed, and conforms to the basic requirement of every network message
+	 * @param json
+	 * @return
+	 * @throws ParserException 
+	 */
+	public static JSONObject validateMessage(String json) throws ParserException {
+		JSONObject obj = parseJSON(json);
+
+		validateFieldType(obj, "cmd", String.class);
+		validateFieldType(obj, "meta_hash", String.class);
+		
+		return obj;
+	}
+	
+	public static SwarmManagerMessage parseSwarmManageMessage(String line) throws ParserException {
+		JSONObject obj = validateMessage(line);
+
+		String cmd = (String)obj.get("cmd");
+		String metaHash = (String)obj.get("meta_hash");
+		
+		return parseSwarmMessage(cmd, metaHash, obj);
+	}
+	
+	private static SwarmManagerMessage parseSwarmMessage(String cmd, String metaHash, JSONObject obj) throws ParserException {
+		if(cmd.equals("register")) {
+			validateFieldType(obj, "port", Long.class);
+			
+			return new SwarmManagerMessage(cmd, metaHash, ((Long)obj.get("port")).intValue());
+		} else if(cmd.equals("request_peers")) {
+			
+			return new SwarmManagerMessage(cmd, metaHash);
+		} else if(cmd.equals("peers")) {
+			validateFieldType(obj, "peers", JSONArray.class);
+			
+			Peer[] peers = convertJSONArrayToPeerArray((JSONArray)obj.get("peers"));
+			
+			return new SwarmManagerMessage(cmd, metaHash, peers);
+		}
+		
+		throw new ParserException("Received unknown command: " + cmd);
+	}
+
+	private static Peer[] convertJSONArrayToPeerArray(JSONArray jsonArray) throws ParserException {
+		Peer[] peers = new Peer[jsonArray.size()];
+		int i=0;
+		for(Object obj : jsonArray) {
+			if(!validateType(obj, JSONArray.class)) {
+				throw new ParserException("Could not parse list of peers into Peer array. Peer array index of invalid type");
+			}
+			JSONArray peer = (JSONArray)obj;
+			
+			if(peer.size() != 2) {
+				throw new ParserException("Badly formed peer. Should be [String, Integer]");
+			}
+			
+			boolean typeCheck = validateType(peer.get(0), String.class);
+			typeCheck &= validateType(peer.get(1), Long.class);
+			
+			if(!typeCheck) {
+				throw new ParserException("Badly formed peer. Should be [String, Integer]");
+			}
+			
+			try {
+				peers[i++] = new Peer(InetAddress.getByName((String) peer.get(0)), ((Long)peer.get(1)).intValue());
+				
+			} catch (UnknownHostException e) {
+				throw new ParserException("Badly formed IP Address encountered whilst parsing peer");
+			}
+		}
+		
+		return peers;
+	}
+
 	public static JSONObject parseJSON(String json) throws ParserException {
 		Object obj;
 		try {

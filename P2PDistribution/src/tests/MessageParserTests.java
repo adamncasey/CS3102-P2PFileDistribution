@@ -85,7 +85,7 @@ public class MessageParserTests {
 		assertEquals("2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43", msg.metaHash);
 	}
 	
-	@Test(expected=ParserException.class)
+	@Test(expected=RuntimeException.class)
 	public void testSwarmManagerRequestPeersGetPortException() throws ParserException {
 		String line = "{\r\n" + 
 				"	\"cmd\": \"request_peers\",\r\n" + 
@@ -97,7 +97,7 @@ public class MessageParserTests {
 		msg.getPort();
 	}
 	
-	@Test(expected=ParserException.class)
+	@Test(expected=RuntimeException.class)
 	public void testSwarmManagerRequestPeersGetPeersException() throws ParserException {
 		String line = "{\r\n" + 
 				"	\"cmd\": \"request_peers\",\r\n" + 
@@ -122,16 +122,16 @@ public class MessageParserTests {
 		assertEquals("peers", msg.cmd);
 		assertEquals("2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43", msg.metaHash);
 
-		assertEquals(2, msg.getPeers().size());
-		assertEquals(4499, msg.getPeers().get(1).port);
-		assertEquals(8622, msg.getPeers().get(2).port);
+		assertEquals(2, msg.getPeers().length);
+		assertEquals(4499, msg.getPeers()[0].port);
+		assertEquals(8622, msg.getPeers()[1].port);
 		
 
 		InetAddress addr = InetAddress.getByName("138.251.204.45");
-		assertEquals(addr, msg.getPeers().get(1).address);
+		assertEquals(addr, msg.getPeers()[0].address);
 		
 		addr = InetAddress.getByName("138.251.204.35");
-		assertEquals(addr, msg.getPeers().get(2).address);
+		assertEquals(addr, msg.getPeers()[1].address);
 	}
 
 	@Test(expected=ParserException.class)
