@@ -1,0 +1,16 @@
+{
+	"cmd": "register",
+	"port": 8844,
+	"meta_hash": "2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43"
+}
+
+{
+	"cmd": "request_peers",
+	"meta_hash": "2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43"
+}
+{
+	"cmd": "peers",
+	"meta_hash": "2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43",
+	"peers": [["138.251.204.45", 4499], ["138.251.204.35", 8622]]
+}
+
