@@ -5,14 +5,14 @@ import static org.junit.Assert.*;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import p2pdistribute.message.MessageParser;
 import p2pdistribute.p2pmeta.FileMetadata;
 import p2pdistribute.p2pmeta.P2PMetadata;
-import p2pdistribute.p2pmeta.Parser;
+import p2pdistribute.p2pmeta.FileParser;
 import p2pdistribute.p2pmeta.ParserException;
 import p2pdistribute.p2pmeta.chunk.ChunkMetadata;
 
@@ -24,9 +24,9 @@ public class P2PMetadataParserTests {
 				"			\"size\": 128812, \r\n" + 
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}";
-		JSONObject obj = parseToJSONObject(chunk);
+		JSONObject obj = MessageParser.parseJSON(chunk);
 		
-		ChunkMetadata meta = Parser.parseChunkMetadata(obj);
+		ChunkMetadata meta = FileParser.parseChunkMetadata(obj);
 		
 		assertEquals(128812, meta.size);
 		byte[] hash = Hex.decodeHex("de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71".toCharArray());
@@ -38,27 +38,27 @@ public class P2PMetadataParserTests {
 				"			\"size\": [128812], \r\n" + 
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}";
-		JSONObject obj = parseToJSONObject(chunk);
+		JSONObject obj = MessageParser.parseJSON(chunk);
 		
-		Parser.parseChunkMetadata(obj);
+		FileParser.parseChunkMetadata(obj);
 	}
 	@Test(expected=ParserException.class)
 	public void testChunkMetadataParseNoHash() throws ParseException, ParserException {
 		String chunk = "{\r\n" + 
 				"			\"size\": 128812, \r\n" + 
 				"		}";
-		JSONObject obj = parseToJSONObject(chunk);
+		JSONObject obj = MessageParser.parseJSON(chunk);
 		
-		Parser.parseChunkMetadata(obj);
+		FileParser.parseChunkMetadata(obj);
 	}
 	@Test(expected=ParserException.class)
 	public void testChunkMetadataParseNoSize() throws ParseException, ParserException {
 		String chunk = "{\r\n" + 
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}";
-		JSONObject obj = parseToJSONObject(chunk);
+		JSONObject obj = MessageParser.parseJSON(chunk);
 		
-		Parser.parseChunkMetadata(obj);
+		FileParser.parseChunkMetadata(obj);
 	}
 	
 	
@@ -73,9 +73,9 @@ public class P2PMetadataParserTests {
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}]" + 
 				"}";
-		JSONObject obj = parseToJSONObject(file);
+		JSONObject obj = MessageParser.parseJSON(file);
 		
-		FileMetadata meta = Parser.parseFileMetadata(obj);
+		FileMetadata meta = FileParser.parseFileMetadata(obj);
 		
 		assertEquals("pg44823.txt", meta.filename);
 		byte[] hash = Hex.decodeHex("d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db".toCharArray());
@@ -99,9 +99,9 @@ public class P2PMetadataParserTests {
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}]" + 
 				"}";
-		JSONObject obj = parseToJSONObject(file);
+		JSONObject obj = MessageParser.parseJSON(file);
 		
-		Parser.parseFileMetadata(obj);
+		FileParser.parseFileMetadata(obj);
 	}
 	@Test(expected=ParserException.class)
 	public void testFileMetadataParseNoHash() throws ParseException, ParserException {		
@@ -113,9 +113,9 @@ public class P2PMetadataParserTests {
 			"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 			"		}]" + 
 			"}";
-		JSONObject obj = parseToJSONObject(file);
+		JSONObject obj = MessageParser.parseJSON(file);
 		
-		Parser.parseFileMetadata(obj);
+		FileParser.parseFileMetadata(obj);
 	}
 	@Test(expected=ParserException.class)
 	public void testFileMetadataParseNoChunks() throws ParseException, ParserException {
@@ -124,9 +124,9 @@ public class P2PMetadataParserTests {
 				"		\"hash\": \"d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db\",\r\n" + 
 				"		\r\n" + 
 				"}";
-		JSONObject obj = parseToJSONObject(file);
+		JSONObject obj = MessageParser.parseJSON(file);
 		
-		Parser.parseFileMetadata(obj);
+		FileParser.parseFileMetadata(obj);
 	}
 	@Test(expected=ParserException.class)
 	public void testFileMetadataParseZeroChunks() throws ParseException, ParserException {
@@ -135,9 +135,9 @@ public class P2PMetadataParserTests {
 				"		\"hash\": \"d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db\",\r\n" + 
 				"		\"chunks\":[]\r\n" + 
 				"}";
-		JSONObject obj = parseToJSONObject(file);
+		JSONObject obj = MessageParser.parseJSON(file);
 		
-		Parser.parseFileMetadata(obj);
+		FileParser.parseFileMetadata(obj);
 	}
 	
 	
@@ -157,7 +157,7 @@ public class P2PMetadataParserTests {
 				"	}]\r\n" + 
 				"}";
 		
-		P2PMetadata meta = Parser.parseP2PMetaFileContents(p2pmeta);
+		P2PMetadata meta = FileParser.parseP2PMetaFileContents(p2pmeta);
 		
 		assertEquals("sha-256", meta.hashType);
 		byte[] hash = Hex.decodeHex("2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43".toCharArray());
@@ -184,7 +184,7 @@ public class P2PMetadataParserTests {
 				"	}]\r\n" + 
 				"}";
 		
-		Parser.parseP2PMetaFileContents(p2pmeta);
+		FileParser.parseP2PMetaFileContents(p2pmeta);
 	}
 	@Test(expected=ParserException.class)
 	public void testEntireMetadataParseNoMetaHash() throws ParserException {
@@ -201,7 +201,7 @@ public class P2PMetadataParserTests {
 				"	}]\r\n" + 
 				"}";
 		
-		Parser.parseP2PMetaFileContents(p2pmeta);
+		FileParser.parseP2PMetaFileContents(p2pmeta);
 	}
 	@Test(expected=ParserException.class)
 	public void testEntireMetadataParseNoFiles() throws ParserException {
@@ -210,7 +210,7 @@ public class P2PMetadataParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\",\r\n" + 
 				"}";
 		
-		Parser.parseP2PMetaFileContents(p2pmeta);
+		FileParser.parseP2PMetaFileContents(p2pmeta);
 	}
 	@Test(expected=ParserException.class)
 	public void testEntireMetadataParseZeroFiles() throws ParserException {
@@ -220,7 +220,7 @@ public class P2PMetadataParserTests {
 				"	\"files\": []\r\n" + 
 				"}";
 		
-		Parser.parseP2PMetaFileContents(p2pmeta);
+		FileParser.parseP2PMetaFileContents(p2pmeta);
 	}
 	@Test(expected=ParserException.class)
 	public void testEntireMetadataParseUnknownHashAlgorithm() throws ParserException {
@@ -238,7 +238,7 @@ public class P2PMetadataParserTests {
 				"	}]\r\n" + 
 				"}";
 		
-		Parser.parseP2PMetaFileContents(p2pmeta);
+		FileParser.parseP2PMetaFileContents(p2pmeta);
 	}
 	
 	/**
@@ -262,15 +262,6 @@ public class P2PMetadataParserTests {
 				"	}]\r\n" + 
 				"}";
 		
-		Parser.parseP2PMetaFileContents(p2pmeta);
-	}
-	
-
-	private JSONObject parseToJSONObject(String chunk) throws ParseException {
-		Object obj = JSONValue.parseWithException(chunk);
-		
-		assertTrue(obj instanceof JSONObject);
-		
-		return (JSONObject)obj;
+		FileParser.parseP2PMetaFileContents(p2pmeta);
 	}
 }

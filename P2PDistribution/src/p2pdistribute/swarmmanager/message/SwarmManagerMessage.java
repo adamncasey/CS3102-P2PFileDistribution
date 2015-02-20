@@ -27,12 +27,16 @@ public class SwarmManagerMessage extends Message {
 	}
 	
 	public List<Peer> getPeers() {
-		assert peers != null;
+		if(peers == null) {
+			throw new RuntimeException("getPeers called on an invalid message");	
+		}
 		
 		return peers;
 	}
 	public int getPort() {
-		assert port != null;
+		if(port == null) {
+			throw new RuntimeException("getPort called on an invalid message");	
+		}
 		
 		return port;
 	}
