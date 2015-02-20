@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 
-public class SwarmManager {
+public class SwarmManagerMain {
 
 	public static final int PORT = 8889;
 	

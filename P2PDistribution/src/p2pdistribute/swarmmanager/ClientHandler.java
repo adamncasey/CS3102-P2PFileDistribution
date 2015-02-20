@@ -38,15 +38,21 @@ public class ClientHandler implements Runnable {
 		try {
 			String line = reader.readLine();
 			
+			if(line == null) {
+				SwarmManagerMain.close(client);
+				return;
+			}
+			
 			handleMessage(line);
 			
 		} catch (IOException | ParserException e) {
 			System.out.println("Error when reading from client: " + e.getMessage());
-			SwarmManager.close(client);
+			SwarmManagerMain.close(client);
 		}
 	}
 
 	private void handleMessage(String line) throws ParserException {
+		
 		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
 		
 		if(msg.cmd.equals("register")) {
@@ -74,10 +80,12 @@ public class ClientHandler implements Runnable {
 		
 		writer.print(MessageParser.serialiseMessage(msg));
 		writer.flush();
+		System.out.println("Sent peer list to client");
 	}
 
 	private void registerClient(SwarmManagerMessage msg) {
 		index.registerClient(client.getInetAddress(), msg.getPort(), msg.metaHash);
+		System.out.println("Registered client with SwarmIndex");
 	}
 
 }
