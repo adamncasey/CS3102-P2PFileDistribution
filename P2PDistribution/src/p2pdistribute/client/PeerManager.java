@@ -1,7 +1,9 @@
 package p2pdistribute.client;
 
+import java.util.LinkedList;
 import java.util.List;
 
+import p2pdistribute.client.filemanager.FileManager;
 import p2pdistribute.common.Peer;
 
 
@@ -17,7 +19,11 @@ public class PeerManager {
 	public final int PEER_CAP = 10; // TODO: Tweak / settings file?
 	
 	public PeerManager(String swarmManagerHostname, FileManager fileManager) {
-		throw new RuntimeException("Not implemented");	// TODO Implement PeerManager constructor
+		
+		smConn = new SwarmManagerConnection(swarmManagerHostname);
+		this.fileManager = fileManager;
+		
+		connections = new LinkedList<>();
 	}
 
 	public boolean run() {
@@ -26,10 +32,8 @@ public class PeerManager {
 		updatePeerList();
 		
 		if(fileManager.numChunksNotStarted() > 0 && connections.size() < PEER_CAP) {
-			// TODO Choose a peer to connect to
 			Peer selectedPeer = selectNewPeer(peers);
 			
-			// TODO Connect to peer
 			PeerConnection peerConn = connectToPeer(selectedPeer);
 			if(peerConn != null) {
 				connections.add(peerConn);
@@ -62,7 +66,13 @@ public class PeerManager {
 	}
 
 	public void waitForPeers() {
-		// TODO Auto-generated method stub
+		// TODO waitForPeers
+		
+		// Close ServerSocket
+		
+		// 
+		
+		// Wait for all clients to finish downloading
 		
 	}
 

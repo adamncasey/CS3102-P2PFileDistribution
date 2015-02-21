@@ -1,6 +1,15 @@
 package p2pdistribute.client;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
+
+import p2pdistribute.client.filemanager.FileManager;
+import p2pdistribute.client.filemanager.FileManagerSetupException;
+import p2pdistribute.common.p2pmeta.FileParser;
 import p2pdistribute.common.p2pmeta.P2PMetadata;
+import p2pdistribute.common.p2pmeta.ParserException;
 
 
 public class ClientMain {
@@ -16,8 +25,11 @@ public class ClientMain {
 		}
 		
 		FileManager fileManager = new FileManager(metadata, args[1]);
-		if(!fileManager.prepareFiles()) {
-			System.err.println("Error occured when allocating/preparing files in destination folder");
+		try {
+			fileManager.prepareFiles();
+		} catch(FileManagerSetupException e) {
+			System.err.println("Error occured when preparing files: " + e.getMessage());
+			return;
 		}
 		
 		PeerManager peerManager = new PeerManager(metadata.swarmManagerHostname, fileManager);
@@ -34,6 +46,8 @@ public class ClientMain {
 			System.out.println("Download Progress: \n\t" + fileManager.numChunksComplete() + " chunks complete. \n\t" + fileManager.numChunksInProgress() + " chunks in-progress. \n\t" +  fileManager.numChunksNotStarted() + " chunks not started.");
 		}
 		
+		// TODO Seed?
+		
 		peerManager.waitForPeers();
 		
 		System.out.println("Exiting");
@@ -45,14 +59,25 @@ public class ClientMain {
 			return false;
 		}
 		
-		return false;
+		return true;
 	}
 
 	private static void printHelp() {
-		System.out.println("Expected Arguments: <P2PMeta File Path> <Destination Folder>");
+		System.out.println("Usage: <P2PMeta File> <Destination Folder>");
 	}
 
 	public static P2PMetadata readP2PMetaFile(String filename) {
-		throw new RuntimeException("Not implemented");
+		String fileContents;
+		try {
+			fileContents = FileUtils.readFileToString(new File(filename));
+			
+			return FileParser.parseP2PMetaFileContents(fileContents);
+			
+		} catch (IOException | ParserException e) {
+			
+			System.out.println("Could not read P2PMeta file: " + e.getMessage());
+		}
+		
+		return null;
 	}
 }
