@@ -1,12 +1,12 @@
-package p2pdistribute.p2pmeta;
+package p2pdistribute.common.p2pmeta;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
 import p2pdistribute.message.MessageParser;
-import p2pdistribute.p2pmeta.chunk.ChunkMetadata;
 
 public class FileParser {
 	public static P2PMetadata parseP2PMetaFileContents(String contents) throws ParserException {
@@ -19,6 +19,7 @@ public class FileParser {
 		
 		MessageParser.validateFieldType(obj, "hash_type", String.class);
 		MessageParser.validateFieldType(obj, "meta_hash", String.class);
+		MessageParser.validateFieldType(obj, "swarm_manager", String.class);
 		MessageParser.validateFieldType(obj, "files", JSONArray.class);
 		
 		// Only support "sha-256", but useful to be able to change in future
@@ -29,6 +30,8 @@ public class FileParser {
 		
 		byte[] metaHash = convertHexStringToByteArray(((String)obj.get("meta_hash")));
 		
+		String smHostname = (String)obj.get("swarm_manager");
+		
 		FileMetadata[] files = convertJSONArrayToFileArray((JSONArray)obj.get("files"));
 		
 		if(files.length == 0) {
@@ -38,7 +41,7 @@ public class FileParser {
 		P2PMetadata file;
 		
 		try {
-			file = new P2PMetadata(hashType, metaHash, files);
+			file = new P2PMetadata(hashType, metaHash, smHostname, files);
 		} catch (IncorrectHashException e) {
 			throw new ParserException("Failed checksum on p2pmeta file");
 		}

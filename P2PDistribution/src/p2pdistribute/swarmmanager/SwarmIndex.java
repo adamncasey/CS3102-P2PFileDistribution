@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import p2pdistribute.common.Peer;
+
 public class SwarmIndex extends HashMap<String, List<Peer>> {
 
 	private static final long serialVersionUID = -7674745645581630801L;

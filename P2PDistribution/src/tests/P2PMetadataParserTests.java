@@ -10,11 +10,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import p2pdistribute.message.MessageParser;
-import p2pdistribute.p2pmeta.FileMetadata;
-import p2pdistribute.p2pmeta.P2PMetadata;
-import p2pdistribute.p2pmeta.FileParser;
-import p2pdistribute.p2pmeta.ParserException;
-import p2pdistribute.p2pmeta.chunk.ChunkMetadata;
+import p2pdistribute.common.p2pmeta.FileMetadata;
+import p2pdistribute.common.p2pmeta.FileParser;
+import p2pdistribute.common.p2pmeta.P2PMetadata;
+import p2pdistribute.common.p2pmeta.ParserException;
+import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
 
 public class P2PMetadataParserTests {
 
@@ -146,6 +146,7 @@ public class P2PMetadataParserTests {
 		String p2pmeta = "{\r\n" + 
 				"	\"hash_type\": \"sha-256\",\r\n" + 
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\",\r\n" + 
+				"	\"swarm_manager\": \"138.251.204.35\"," + 
 				"	\"files\": [{\r\n" + 
 				"		\"name\": \"pg44823.txt\",\r\n" + 
 				"		\"hash\": \"d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db\",\r\n" + 
@@ -163,6 +164,7 @@ public class P2PMetadataParserTests {
 		byte[] hash = Hex.decodeHex("2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43".toCharArray());
 		assertArrayEquals(hash, meta.metaHash);
 		
+		assertEquals("138.251.204.35", meta.swarmManagerHostname);
 		
 		assertEquals(1, meta.files.length);
 		
@@ -190,6 +192,24 @@ public class P2PMetadataParserTests {
 	public void testEntireMetadataParseNoMetaHash() throws ParserException {
 		String p2pmeta = "{\r\n" + 
 				"	\"hash_type\": \"sha-256\",\r\n" + 
+				"	\"files\": [{\r\n" + 
+				"		\"name\": \"pg44823.txt\",\r\n" + 
+				"		\"hash\": \"d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db\",\r\n" + 
+				"		\r\n" + 
+				"		\"chunks\": [{\r\n" + 
+				"			\"size\": 128812, \r\n" + 
+				"			\"hash\": \"\"\r\n" + 
+				"		}]\r\n" + 
+				"	}]\r\n" + 
+				"}";
+		
+		FileParser.parseP2PMetaFileContents(p2pmeta);
+	}
+	@Test(expected=ParserException.class)
+	public void testEntireMetadataParseNoSwarmManager() throws ParserException {
+		String p2pmeta = "{\r\n" + 
+				"	\"hash_type\": \"sha-256\",\r\n" + 
+				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"," +
 				"	\"files\": [{\r\n" + 
 				"		\"name\": \"pg44823.txt\",\r\n" + 
 				"		\"hash\": \"d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db\",\r\n" + 

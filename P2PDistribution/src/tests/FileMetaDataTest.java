@@ -6,8 +6,9 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
-import p2pdistribute.p2pmeta.FileMetadata;
-import p2pdistribute.p2pmeta.chunk.ChunkMetadata;
+import p2pdistribute.common.p2pmeta.FileMetadata;
+import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
+
 
 public class FileMetaDataTest {
 

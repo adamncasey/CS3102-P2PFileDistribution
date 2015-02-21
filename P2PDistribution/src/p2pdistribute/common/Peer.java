@@ -1,4 +1,4 @@
-package p2pdistribute.swarmmanager;
+package p2pdistribute.common;
 
 import java.net.InetAddress;
 

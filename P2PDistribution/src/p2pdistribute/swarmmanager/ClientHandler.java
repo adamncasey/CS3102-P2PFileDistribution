@@ -7,9 +7,10 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 
-import p2pdistribute.p2pmeta.ParserException;
+import p2pdistribute.common.Peer;
+import p2pdistribute.common.message.SwarmManagerMessage;
+import p2pdistribute.common.p2pmeta.ParserException;
 import p2pdistribute.message.MessageParser;
-import p2pdistribute.swarmmanager.message.SwarmManagerMessage;
 
 public class ClientHandler implements Runnable {
 

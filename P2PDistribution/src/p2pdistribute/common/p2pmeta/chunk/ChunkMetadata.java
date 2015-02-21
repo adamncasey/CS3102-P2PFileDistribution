@@ -1,4 +1,4 @@
-package p2pdistribute.p2pmeta.chunk;
+package p2pdistribute.common.p2pmeta.chunk;
 
 public class ChunkMetadata {
 	public final int size;

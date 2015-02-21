@@ -1,6 +1,7 @@
-package p2pdistribute.p2pmeta;
+package p2pdistribute.common.p2pmeta;
 
-import p2pdistribute.p2pmeta.chunk.ChunkMetadata;
+import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
+
 
 public class FileMetadata {
 	public final String filename;

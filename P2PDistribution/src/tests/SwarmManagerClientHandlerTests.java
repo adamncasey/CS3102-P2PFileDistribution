@@ -3,7 +3,6 @@ package tests;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -20,12 +19,12 @@ import java.util.List;
 
 import org.junit.Test;
 
+import p2pdistribute.common.Peer;
+import p2pdistribute.common.message.SwarmManagerMessage;
+import p2pdistribute.common.p2pmeta.ParserException;
 import p2pdistribute.message.MessageParser;
-import p2pdistribute.p2pmeta.ParserException;
 import p2pdistribute.swarmmanager.ClientHandler;
-import p2pdistribute.swarmmanager.Peer;
 import p2pdistribute.swarmmanager.SwarmIndex;
-import p2pdistribute.swarmmanager.message.SwarmManagerMessage;
 
 public class SwarmManagerClientHandlerTests {
 	

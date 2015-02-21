@@ -8,9 +8,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 
-import p2pdistribute.p2pmeta.ParserException;
-import p2pdistribute.swarmmanager.Peer;
-import p2pdistribute.swarmmanager.message.SwarmManagerMessage;
+import p2pdistribute.common.Peer;
+import p2pdistribute.common.message.SwarmManagerMessage;
+import p2pdistribute.common.p2pmeta.ParserException;
+
 
 public class MessageParser {
 

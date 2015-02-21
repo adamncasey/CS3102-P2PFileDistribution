@@ -9,9 +9,9 @@ import org.apache.commons.codec.DecoderException;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
+import p2pdistribute.common.message.SwarmManagerMessage;
+import p2pdistribute.common.p2pmeta.ParserException;
 import p2pdistribute.message.MessageParser;
-import p2pdistribute.p2pmeta.ParserException;
-import p2pdistribute.swarmmanager.message.SwarmManagerMessage;
 
 public class MessageParserTests {
 
@@ -50,7 +50,7 @@ public class MessageParserTests {
 				"}";
 		
 		MessageParser.parseSwarmManageMessage(line);
-	}	
+	}
 	
 	@Test(expected=ParserException.class)
 	public void testSwarmManagerMessageNoCmd() throws ParserException {

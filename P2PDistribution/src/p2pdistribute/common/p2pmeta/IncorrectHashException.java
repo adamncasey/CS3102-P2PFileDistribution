@@ -1,4 +1,4 @@
-package p2pdistribute.p2pmeta;
+package p2pdistribute.common.p2pmeta;
 
 public class IncorrectHashException extends Exception {
 

@@ -1,12 +1,12 @@
-package p2pdistribute.swarmmanager.message;
+package p2pdistribute.common.message;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import p2pdistribute.common.Peer;
 import p2pdistribute.message.Message;
-import p2pdistribute.swarmmanager.Peer;
 
 public class SwarmManagerMessage extends Message {
 	
