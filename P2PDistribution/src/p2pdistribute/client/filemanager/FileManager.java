@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 
+import p2pdistribute.common.p2pmeta.FileMetadata;
 import p2pdistribute.common.p2pmeta.P2PMetadata;
 
 /**
@@ -14,35 +16,73 @@ import p2pdistribute.common.p2pmeta.P2PMetadata;
 public class FileManager {
 	
 	public final Path destinationFolder;
+	private P2PFile[] files;
 	
+	private final P2PMetadata metadata;
 	
 	public FileManager(P2PMetadata metadata, String destinationPath) {
 		destinationFolder = Paths.get(destinationPath);
+		
+		this.metadata = metadata;
+		
+		files = new P2PFile[metadata.files.length];
 	}
 	
 
-	public void prepareFiles() throws FileManagerSetupException {
+	public void setup() throws FileManagerSetupException {
+
+		prepareDirectory();
 		
-		// if !destinationPathExists: create folder
+		HashAlgorithm hashFunc = makeHashAlgorithm(metadata.hashType);
+		prepareFiles(hashFunc);
+	}
+
+	private void prepareDirectory() throws FileManagerSetupException {
+		// TODO Warning if directory not empty? Could overwrite files.
+		
 		if(Files.exists(destinationFolder)) {
 			if(!Files.isDirectory(destinationFolder)) {
-				throw new FileManagerSetupException("Supplied destination folder is not a directory");
-			}
-		} else {
-			try {
-				Files.createDirectory(destinationFolder);
-			} catch (IOException e) {
-				throw new FileManagerSetupException("Could not create destination directory: " + e.getMessage());
+				throw new FileManagerSetupException("Supplied destination is not a directory");
 			}
 		}
+		else {
+			createDirectory(destinationFolder);
+		}		
+	}
+	private void createDirectory(Path path) throws FileManagerSetupException {
 		
-		// For each file in p2pmeta
-		// If exists:
-			// Find out what chunks we have, what chunks we do not have
-		// Else:
-			// Allocate space for file
-
-		throw new RuntimeException("not implemented");
+		try {
+			Files.createDirectory(path);
+		} catch (IOException e) {
+			throw new FileManagerSetupException("Could not create destination directory: " + e.getMessage());
+		}
+	}
+	
+	private HashAlgorithm makeHashAlgorithm(String hashType) throws FileManagerSetupException {
+		HashAlgorithm hashFunc;
+		try {
+			hashFunc = new HashAlgorithm(metadata.hashType);
+		} catch (NoSuchAlgorithmException e1) {
+			throw new FileManagerSetupException("Unsupported hash type found in P2Pmeta file");
+		}
+		
+		return hashFunc;
+	}
+	
+	private void prepareFiles(HashAlgorithm hashFunc) throws FileManagerSetupException {
+		int i=0;
+		
+		for(FileMetadata fileMeta : metadata.files) {
+			P2PFile file = new P2PFile(destinationFolder, fileMeta, hashFunc);
+			
+			try {
+				file.prepare();
+			} catch (P2PFilePreparationException e) {
+				throw new FileManagerSetupException("Error occured preparing file: " + e.getMessage()); 
+			}
+			
+			files[i++] = file;
+		}
 	}
 	
 	public void getChunkData(int fileid, int chunkid) {
@@ -64,19 +104,24 @@ public class FileManager {
 	
 	// Store file/chunk progress (COMPLETE, INPROGRESS, NONE)
 	
-	public int numChunksNotStarted() {
-		// TODO implement
-		throw new RuntimeException("not implemented");
+	public int numChunksIncomplete() {
+		int total = 0;
+		
+		for(P2PFile file : files) {
+			total += file.getIncompleteChunks();
+		}
+		
+		return total;
 	}
 
 	public int numChunksComplete() {
-		// TODO Auto-generated method stub
-		throw new RuntimeException("not implemented");
-	}
-
-	public int numChunksInProgress() {
-		// TODO Auto-generated method stub
-		throw new RuntimeException("not implemented");
+		int total = 0;
+		
+		for(P2PFile file : files) {
+			total += file.getCompleteChunks();
+		}
+		
+		return total;
 	}
 
 }

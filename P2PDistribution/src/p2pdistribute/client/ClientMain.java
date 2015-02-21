@@ -26,7 +26,7 @@ public class ClientMain {
 		
 		FileManager fileManager = new FileManager(metadata, args[1]);
 		try {
-			fileManager.prepareFiles();
+			fileManager.setup();
 		} catch(FileManagerSetupException e) {
 			System.err.println("Error occured when preparing files: " + e.getMessage());
 			return;
@@ -35,7 +35,7 @@ public class ClientMain {
 		PeerManager peerManager = new PeerManager(metadata.swarmManagerHostname, fileManager);
 		
 		//TODO This loop does not handle starved swarm (Chunks left but no peers which have that chunk)
-		while(fileManager.numChunksNotStarted() > 0) {
+		while(/*fileManager.numChunksNotStarted() > 0*/ true) {
 			if(!peerManager.run()) {
 				System.out.println("Error occured..."); //TODO Get more detail for print message?
 				break;
@@ -43,7 +43,7 @@ public class ClientMain {
 			
 			Thread.sleep(5000);
 			
-			System.out.println("Download Progress: \n\t" + fileManager.numChunksComplete() + " chunks complete. \n\t" + fileManager.numChunksInProgress() + " chunks in-progress. \n\t" +  fileManager.numChunksNotStarted() + " chunks not started.");
+			System.out.println("Download Progress: \n\t" + fileManager.numChunksComplete() + " chunks complete. \n\t" + fileManager.numChunksIncomplete() + " chunks incomplete.");
 		}
 		
 		// TODO Seed?

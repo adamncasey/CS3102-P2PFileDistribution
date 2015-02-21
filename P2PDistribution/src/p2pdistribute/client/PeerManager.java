@@ -31,7 +31,7 @@ public class PeerManager {
 		
 		updatePeerList();
 		
-		if(fileManager.numChunksNotStarted() > 0 && connections.size() < PEER_CAP) {
+		if(/*fileManager.numChunksNotStarted() > 0 &&*/ connections.size() < PEER_CAP) {
 			Peer selectedPeer = selectNewPeer(peers);
 			
 			PeerConnection peerConn = connectToPeer(selectedPeer);
