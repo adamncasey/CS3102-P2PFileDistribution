@@ -1,14 +1,14 @@
-package p2pdistribute.message;
+package p2pdistribute.common.message;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class Message {
+public class ControlMessage extends Message {
 	public final String cmd;
 	public final String metaHash;
 	
-	public Message(String cmd, String metaHash) {
+	public ControlMessage(String cmd, String metaHash) {
 		this.cmd = cmd;
 		this.metaHash = metaHash;
 	}
@@ -45,7 +45,7 @@ public class Message {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Message other = (Message) obj;
+		ControlMessage other = (ControlMessage) obj;
 		if (cmd == null) {
 			if (other.cmd != null)
 				return false;

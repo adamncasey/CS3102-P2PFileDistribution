@@ -5,12 +5,13 @@
 }
 
 {
-	"cmd": "request_peers",
-	"meta_hash": "2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43"
-}
-{
-	"cmd": "peers",
+	"cmd": "advertise_chunks",
 	"meta_hash": "2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43",
-	"peers": [["138.251.204.45", 4499], ["138.251.204.35", 8622]]
+	"chunks": [[<fileid>, <chunkid>], [<fileid>, <chunkid>]]
 }
 
+{
+	"cmd": "request_chunk",
+	"meta_hash": "2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43",
+	"chunk": [<fileid>, <chunkid>]
+}

@@ -2,7 +2,7 @@
 	"hash_type": "sha-256",
 	"meta_hash": "2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43",
 	
-	"swarm_manager": "138.251.204.35",
+	"swarm_manager": "127.0.0.1",
 	
 	"files": [{
 		"name": "pg44823.txt",

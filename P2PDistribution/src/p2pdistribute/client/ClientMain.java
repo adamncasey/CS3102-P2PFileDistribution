@@ -10,9 +10,12 @@ import p2pdistribute.client.filemanager.FileManagerSetupException;
 import p2pdistribute.common.p2pmeta.FileParser;
 import p2pdistribute.common.p2pmeta.P2PMetadata;
 import p2pdistribute.common.p2pmeta.ParserException;
+import p2pdistribute.swarmmanager.SwarmManagerMain;
 
 
 public class ClientMain {
+	public static final int SM_PORT = SwarmManagerMain.PORT;
+	
 	public static void main(String[] args) throws InterruptedException {
 		
 		if(!checkArgs(args)) {
@@ -32,21 +35,30 @@ public class ClientMain {
 			return;
 		}
 		
-		PeerManager peerManager = new PeerManager(metadata.swarmManagerHostname, fileManager);
+		PeerManager peerManager;
+		try {
+			peerManager = new PeerManager(metadata.swarmManagerHostname, SM_PORT, fileManager);
+		} catch (PeerManagerException e) {
+			System.err.println(e.getMessage());
+			return;
+		}
+
+		// TODO If we are not done or not everyone we are connected to is complete: keep going
 		
-		//TODO This loop does not handle starved swarm (Chunks left but no peers which have that chunk)
-		while(/*fileManager.numChunksNotStarted() > 0*/ true) {
-			if(!peerManager.run()) {
-				System.out.println("Error occured..."); //TODO Get more detail for print message?
+		while(!fileManager.complete() || !peerManager.complete()) {
+			//TODO Handle starved swarm?
+			try {
+				peerManager.run(); 
+				
+			} catch(PeerManagerException e) {
+				System.err.println(e.getMessage()); //TODO Get more detail for print message?
 				break;
 			}
 			
 			Thread.sleep(5000);
 			
-			System.out.println("Download Progress: \n\t" + fileManager.numChunksComplete() + " chunks complete. \n\t" + fileManager.numChunksIncomplete() + " chunks incomplete.");
-		}
-		
-		// TODO Seed?
+			System.out.println("Download Progress: \n\tFinished?:" + fileManager.complete());
+		}		
 		
 		peerManager.waitForPeers();
 		

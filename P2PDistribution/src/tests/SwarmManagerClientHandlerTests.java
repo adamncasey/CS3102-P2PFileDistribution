@@ -20,9 +20,9 @@ import java.util.List;
 import org.junit.Test;
 
 import p2pdistribute.common.Peer;
+import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
-import p2pdistribute.message.MessageParser;
 import p2pdistribute.swarmmanager.ClientHandler;
 import p2pdistribute.swarmmanager.SwarmIndex;
 
@@ -101,8 +101,8 @@ public class SwarmManagerClientHandlerTests {
 		
 		System.out.println(msg);
 		
-		SwarmManagerMessage expected = MessageParser.parseSwarmManageMessage(expectedMessage);
-		SwarmManagerMessage actual = MessageParser.parseSwarmManageMessage(msg);
+		SwarmManagerMessage expected = SwarmManagerMessageParser.parseSwarmManageMessage(expectedMessage);
+		SwarmManagerMessage actual = SwarmManagerMessageParser.parseSwarmManageMessage(msg);
 		
 		assertEquals(expected, actual);
 	}

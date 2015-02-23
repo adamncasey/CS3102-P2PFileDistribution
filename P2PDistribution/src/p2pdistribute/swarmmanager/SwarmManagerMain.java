@@ -21,6 +21,8 @@ public class SwarmManagerMain {
 			return;
 		}
 		
+		System.out.println("Started Swarm Manager");
+		
 		serverLoop(server);
 		
 		close(server);

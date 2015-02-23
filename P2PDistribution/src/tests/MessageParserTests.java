@@ -9,9 +9,9 @@ import org.apache.commons.codec.DecoderException;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
+import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
-import p2pdistribute.message.MessageParser;
 
 public class MessageParserTests {
 
@@ -23,7 +23,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"\r\n" + 
 				"}";
 		
-		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessage msg = SwarmManagerMessageParser.parseSwarmManageMessage(line);
 		
 		assertEquals("register", msg.cmd);
 		assertEquals(8844, msg.getPort());
@@ -37,7 +37,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"\r\n" + 
 				"}";
 		
-		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessage msg = SwarmManagerMessageParser.parseSwarmManageMessage(line);
 		
 		msg.getPeers();
 	}
@@ -49,7 +49,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"\r\n" + 
 				"}";
 		
-		MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessageParser.parseSwarmManageMessage(line);
 	}
 	
 	@Test(expected=ParserException.class)
@@ -59,7 +59,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"\r\n" + 
 				"}";
 		
-		MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessageParser.parseSwarmManageMessage(line);
 	}
 	
 	@Test(expected=ParserException.class)
@@ -69,7 +69,7 @@ public class MessageParserTests {
 				"	\"port\": 8844,\r\n" + 
 				"}";
 		
-		MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessageParser.parseSwarmManageMessage(line);
 	}
 
 	@Test
@@ -79,7 +79,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"\r\n" + 
 				"}";
 		
-		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessage msg = SwarmManagerMessageParser.parseSwarmManageMessage(line);
 		
 		assertEquals("request_peers", msg.cmd);
 		assertEquals("2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43", msg.metaHash);
@@ -92,7 +92,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"\r\n" + 
 				"}";
 		
-		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessage msg = SwarmManagerMessageParser.parseSwarmManageMessage(line);
 		
 		msg.getPort();
 	}
@@ -104,7 +104,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\"\r\n" + 
 				"}";
 		
-		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessage msg = SwarmManagerMessageParser.parseSwarmManageMessage(line);
 		
 		msg.getPeers();
 	}
@@ -117,7 +117,7 @@ public class MessageParserTests {
 				"	\"peers\": [[\"138.251.204.45\", 4499], [\"138.251.204.35\", 8622]]\r\n" + 
 				"}";
 		
-		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessage msg = SwarmManagerMessageParser.parseSwarmManageMessage(line);
 		
 		assertEquals("peers", msg.cmd);
 		assertEquals("2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43", msg.metaHash);
@@ -141,7 +141,7 @@ public class MessageParserTests {
 				"	\"meta_hash\": \"2a8593d74a066ec1f3902e72ae468489bbda8b0444758a19fd6b8bf29ed1bf43\",\r\n" + 
 				"}";
 		
-		MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessageParser.parseSwarmManageMessage(line);
 	}
 	
 
@@ -153,7 +153,7 @@ public class MessageParserTests {
 				"	\"peers\": [{\"ip\": \"138.251.204.45\", \"port\": 4499], [\"138.251.204.35\", 8622]]\r\n" + 
 				"}";
 		
-		MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessageParser.parseSwarmManageMessage(line);
 	}
 
 
@@ -165,7 +165,7 @@ public class MessageParserTests {
 				"	\"peers\": [[1234321, 4499], [\"138.251.204.35\", 8622]]\r\n" + 
 				"}";
 		
-		MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessageParser.parseSwarmManageMessage(line);
 	}
 
 	@Test(expected=ParserException.class)
@@ -176,6 +176,6 @@ public class MessageParserTests {
 				"	\"peers\": [[\"138.251.204.45\", []], [\"138.251.204.35\", 8622]]\r\n" + 
 				"}";
 		
-		MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessageParser.parseSwarmManageMessage(line);
 	}
 }

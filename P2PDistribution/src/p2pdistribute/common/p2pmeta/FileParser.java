@@ -5,22 +5,22 @@ import org.apache.commons.codec.binary.Hex;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import p2pdistribute.common.message.MessageParserUtils;
 import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
-import p2pdistribute.message.MessageParser;
 
 public class FileParser {
 	public static P2PMetadata parseP2PMetaFileContents(String contents) throws ParserException {
-		JSONObject obj = MessageParser.parseJSON(contents);
+		JSONObject obj = MessageParserUtils.parseJSON(contents);
 		
 		return parseP2PMetadata(obj);
 	}
 	
 	private static P2PMetadata parseP2PMetadata(JSONObject obj) throws ParserException {
 		
-		MessageParser.validateFieldType(obj, "hash_type", String.class);
-		MessageParser.validateFieldType(obj, "meta_hash", String.class);
-		MessageParser.validateFieldType(obj, "swarm_manager", String.class);
-		MessageParser.validateFieldType(obj, "files", JSONArray.class);
+		MessageParserUtils.validateFieldType(obj, "hash_type", String.class);
+		MessageParserUtils.validateFieldType(obj, "meta_hash", String.class);
+		MessageParserUtils.validateFieldType(obj, "swarm_manager", String.class);
+		MessageParserUtils.validateFieldType(obj, "files", JSONArray.class);
 		
 		// Only support "sha-256", but useful to be able to change in future
 		String hashType = (String)obj.get("hash_type");
@@ -50,9 +50,9 @@ public class FileParser {
 	}
 	
 	public static FileMetadata parseFileMetadata(JSONObject file) throws ParserException {
-		MessageParser.validateFieldType(file, "name", String.class);
-		MessageParser.validateFieldType(file, "hash", String.class);
-		MessageParser.validateFieldType(file, "chunks", JSONArray.class);
+		MessageParserUtils.validateFieldType(file, "name", String.class);
+		MessageParserUtils.validateFieldType(file, "hash", String.class);
+		MessageParserUtils.validateFieldType(file, "chunks", JSONArray.class);
 		
 		String name = (String)file.get("name");
 		byte[] hash = convertHexStringToByteArray(((String)file.get("hash")));
@@ -99,7 +99,7 @@ public class FileParser {
 		JSONObject[] objects = new JSONObject[jsonArray.size()];
 		
 		for(int i=0; i<jsonArray.size(); i++) {
-			if(!MessageParser.validateType(jsonArray.get(i), JSONObject.class)) {
+			if(!MessageParserUtils.validateType(jsonArray.get(i), JSONObject.class)) {
 				throw new ParserException("Array index " + i + " is not of type JSONObject as required");
 			}
 			
@@ -110,8 +110,8 @@ public class FileParser {
 	}
 
 	public static ChunkMetadata parseChunkMetadata(JSONObject chunk) throws ParserException {
-		MessageParser.validateFieldType(chunk, "size", Number.class);
-		MessageParser.validateFieldType(chunk, "hash", String.class);
+		MessageParserUtils.validateFieldType(chunk, "size", Number.class);
+		MessageParserUtils.validateFieldType(chunk, "hash", String.class);
 		
 		int size = ((Number)chunk.get("size")).intValue();
 		byte[] hash = convertHexStringToByteArray(((String)chunk.get("hash")));

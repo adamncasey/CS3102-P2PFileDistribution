@@ -18,7 +18,9 @@ public class FileManager {
 	public final Path destinationFolder;
 	private P2PFile[] files;
 	
-	private final P2PMetadata metadata;
+	public final P2PMetadata metadata;
+	
+	private AcquisitionStatus status;
 	
 	public FileManager(P2PMetadata metadata, String destinationPath) {
 		destinationFolder = Paths.get(destinationPath);
@@ -75,13 +77,17 @@ public class FileManager {
 		for(FileMetadata fileMeta : metadata.files) {
 			P2PFile file = new P2PFile(destinationFolder, fileMeta, hashFunc);
 			
+			Status[] fileStatus;
+			
 			try {
-				file.prepare();
+				fileStatus = file.prepare();
 			} catch (P2PFilePreparationException e) {
 				throw new FileManagerSetupException("Error occured preparing file: " + e.getMessage()); 
 			}
 			
-			files[i++] = file;
+			status.setStatus(i, fileStatus);
+			files[i] = file;
+			i++;
 		}
 	}
 	
@@ -103,25 +109,22 @@ public class FileManager {
 	}
 	
 	// Store file/chunk progress (COMPLETE, INPROGRESS, NONE)
+	public boolean complete() {
+		return status.complete();
+	}
 	
-	public int numChunksIncomplete() {
+	public int numFiles() {
+		return metadata.files.length;
+	}
+	
+	public int numChunks() {
 		int total = 0;
 		
-		for(P2PFile file : files) {
-			total += file.getIncompleteChunks();
+		for(FileMetadata file : metadata.files) {
+			
+			total += file.chunks.length;
 		}
 		
 		return total;
 	}
-
-	public int numChunksComplete() {
-		int total = 0;
-		
-		for(P2PFile file : files) {
-			total += file.getCompleteChunks();
-		}
-		
-		return total;
-	}
-
 }

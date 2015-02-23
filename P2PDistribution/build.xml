@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project P2PDistribute">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="peer.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="p2pdistribute.client.ClientMain"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/json-simple-1.1.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/commons-codec-1.10.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/mockito-core-2.0.4-beta.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/objenesis-2.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/commons-io-2.4.jar"/>
+        </jar>
+		
+		<jar destfile="sm.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="p2pdistribute.swarmmanager.SwarmManagerMain"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/json-simple-1.1.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/commons-codec-1.10.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/mockito-core-2.0.4-beta.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/objenesis-2.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/commons-io-2.4.jar"/>
+        </jar>
+    </target>
+	
+</project>

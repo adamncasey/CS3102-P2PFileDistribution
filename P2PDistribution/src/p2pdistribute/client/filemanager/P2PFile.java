@@ -31,39 +31,18 @@ public class P2PFile {
 		}
 	}
 
-	public void prepare() throws P2PFilePreparationException {
+	public Status[] prepare() throws P2PFilePreparationException {
 		
 		allocateFile();
 		
-		verifyChunks();
+		return verifyChunks();
 	}
 	
 	public int getTotalChunks() {
 		return meta.chunks.length;
 	}
 	
-	public int getCompleteChunks() {
-		
-		return chunkStatusCount(Status.COMPLETE);
-	}
-	
-	public int getIncompleteChunks() {
-		
-		return chunkStatusCount(Status.INCOMPLETE);
-	}
-	
-	private int chunkStatusCount(Status status) {
-		int count = 0;
-		for(P2PChunk chunk : chunks) {
-			if(chunk.getStatus() == status) {
-				count++;
-			}
-		}
-		
-		return count;
-	}
-	
-	public void writeChunkData(int chunkid, int dataoffset, int data) {
+	public void writeChunkData(int chunkid, byte[] data) {
 		// TODO write writeChunkData
 		throw new RuntimeException("not implemented");
 		
@@ -72,7 +51,7 @@ public class P2PFile {
 		// verify chunk again.
 	}
 	
-	public byte[] readChunkData(int chunkid, int dataoffset, int datalength) {
+	public byte[] readChunkData(int chunkid) {
 		// TODO Write readChunkData
 		throw new RuntimeException("not implemented");
 		
@@ -101,7 +80,10 @@ public class P2PFile {
 		}
 	}
 	
-	private void verifyChunks() throws P2PFilePreparationException {
+	private Status[] verifyChunks() throws P2PFilePreparationException {
+		
+		Status[] statuses = new Status[chunks.length];
+		int i=0;		
 		
 		try {
 			file.seek(0);
@@ -109,11 +91,13 @@ public class P2PFile {
 				byte[] data = new byte[chunk.meta.size];// Read chunk data from file
 				file.read(data, 0, data.length);
 			
-				chunk.verifyChunk(data);
+				statuses[i++] = chunk.verifyChunk(data);
 			}
 		} catch(IOException e) {
 			throw new P2PFilePreparationException("Error occurred verifying file chunks: " + e.getMessage());
 		}
+		
+		return statuses;
 	}
 	
 	private long calculateFileSize(ChunkMetadata[] chunks) {

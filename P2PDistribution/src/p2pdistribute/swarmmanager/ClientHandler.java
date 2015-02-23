@@ -8,9 +8,9 @@ import java.net.Socket;
 import java.util.List;
 
 import p2pdistribute.common.Peer;
+import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
-import p2pdistribute.message.MessageParser;
 
 public class ClientHandler implements Runnable {
 
@@ -54,15 +54,13 @@ public class ClientHandler implements Runnable {
 
 	private void handleMessage(String line) throws ParserException {
 		
-		SwarmManagerMessage msg = MessageParser.parseSwarmManageMessage(line);
+		SwarmManagerMessage msg = SwarmManagerMessageParser.parseSwarmManageMessage(line);
 		
 		if(msg.cmd.equals("register")) {
 			registerClient(msg);
 		} else if(msg.cmd.equals("request_peers")) {
 			sendPeerList(msg.metaHash);
 		}
-		
-		// TODO OPTIONAL - "unregister" (p2pmeta hash): remove client from list associated with that hash
 	}
 
 	private void sendPeerList(String metaHash) {
@@ -79,7 +77,7 @@ public class ClientHandler implements Runnable {
 		
 		SwarmManagerMessage msg = new SwarmManagerMessage("peers", metaHash, peersArray);
 		
-		writer.print(MessageParser.serialiseMessage(msg));
+		writer.print(SwarmManagerMessageParser.serialiseMessageAsJSON(msg));
 		writer.flush();
 		System.out.println("Sent peer list to client");
 	}

@@ -1,21 +1,18 @@
-package p2pdistribute.message;
+package p2pdistribute.common.message;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 
 import p2pdistribute.common.Peer;
-import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
 
 
-public class MessageParser {
+public class SwarmManagerMessageParser {
 
-	public static String serialiseMessage(Message msg) {
+	public static String serialiseMessageAsJSON(ControlMessage msg) {
 		JSONObject obj = new JSONObject(msg.getJSON());
 		
 		String line = obj.toJSONString() + "\n";
@@ -30,10 +27,10 @@ public class MessageParser {
 	 * @throws ParserException 
 	 */
 	public static JSONObject validateMessage(String json) throws ParserException {
-		JSONObject obj = parseJSON(json);
+		JSONObject obj = MessageParserUtils.parseJSON(json);
 
-		validateFieldType(obj, "cmd", String.class);
-		validateFieldType(obj, "meta_hash", String.class);
+		MessageParserUtils.validateFieldType(obj, "cmd", String.class);
+		MessageParserUtils.validateFieldType(obj, "meta_hash", String.class);
 		
 		return obj;
 	}
@@ -49,14 +46,14 @@ public class MessageParser {
 	
 	private static SwarmManagerMessage parseSwarmMessage(String cmd, String metaHash, JSONObject obj) throws ParserException {
 		if(cmd.equals("register")) {
-			validateFieldType(obj, "port", Long.class);
+			MessageParserUtils.validateFieldType(obj, "port", Long.class);
 			
 			return new SwarmManagerMessage(cmd, metaHash, ((Long)obj.get("port")).intValue());
 		} else if(cmd.equals("request_peers")) {
 			
 			return new SwarmManagerMessage(cmd, metaHash);
 		} else if(cmd.equals("peers")) {
-			validateFieldType(obj, "peers", JSONArray.class);
+			MessageParserUtils.validateFieldType(obj, "peers", JSONArray.class);
 			
 			Peer[] peers = convertJSONArrayToPeerArray((JSONArray)obj.get("peers"));
 			
@@ -70,7 +67,7 @@ public class MessageParser {
 		Peer[] peers = new Peer[jsonArray.size()];
 		int i=0;
 		for(Object obj : jsonArray) {
-			if(!validateType(obj, JSONArray.class)) {
+			if(!MessageParserUtils.validateType(obj, JSONArray.class)) {
 				throw new ParserException("Could not parse list of peers into Peer array. Peer array index of invalid type");
 			}
 			JSONArray peer = (JSONArray)obj;
@@ -79,8 +76,8 @@ public class MessageParser {
 				throw new ParserException("Badly formed peer. Should be [String, Integer]");
 			}
 			
-			boolean typeCheck = validateType(peer.get(0), String.class);
-			typeCheck &= validateType(peer.get(1), Long.class);
+			boolean typeCheck = MessageParserUtils.validateType(peer.get(0), String.class);
+			typeCheck &= MessageParserUtils.validateType(peer.get(1), Long.class);
 			
 			if(!typeCheck) {
 				throw new ParserException("Badly formed peer. Should be [String, Integer]");
@@ -96,33 +93,4 @@ public class MessageParser {
 		
 		return peers;
 	}
-
-	public static JSONObject parseJSON(String json) throws ParserException {
-		Object obj;
-		try {
-			obj = JSONValue.parseWithException(json);
-			
-		} catch(ParseException e) {
-			throw new ParserException("Could not parse string as JSON");
-		}
-		validateType(obj, JSONObject.class);
-		
-		return (JSONObject)obj;
-	}
-	
-	public static void validateFieldType(JSONObject object, String key, Class<?> class1) throws ParserException {
-		if(object.get(key) != null && validateType(object.get(key), class1)) {
-			return;
-		}
-		
-		throw new ParserException("Unable to parse. " + key + " must be present and of correct type (" + class1.toString() + ").");
-	}
-	public static boolean validateType(Object obj, Class<?> class1) {
-        if(class1.isAssignableFrom(obj.getClass())) {
-            return true;
-        }
-
-        return false;
-    }
-
 }

@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import p2pdistribute.common.Peer;
-import p2pdistribute.message.Message;
 
-public class SwarmManagerMessage extends Message {
+public class SwarmManagerMessage extends ControlMessage {
 	
 	private final Integer port;
 	private final Peer[] peers;

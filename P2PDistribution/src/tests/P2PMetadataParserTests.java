@@ -9,7 +9,8 @@ import org.json.simple.parser.ParseException;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import p2pdistribute.message.MessageParser;
+import p2pdistribute.common.message.MessageParserUtils;
+import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.p2pmeta.FileMetadata;
 import p2pdistribute.common.p2pmeta.FileParser;
 import p2pdistribute.common.p2pmeta.P2PMetadata;
@@ -24,7 +25,7 @@ public class P2PMetadataParserTests {
 				"			\"size\": 128812, \r\n" + 
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}";
-		JSONObject obj = MessageParser.parseJSON(chunk);
+		JSONObject obj = MessageParserUtils.parseJSON(chunk);
 		
 		ChunkMetadata meta = FileParser.parseChunkMetadata(obj);
 		
@@ -38,7 +39,7 @@ public class P2PMetadataParserTests {
 				"			\"size\": [128812], \r\n" + 
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}";
-		JSONObject obj = MessageParser.parseJSON(chunk);
+		JSONObject obj = MessageParserUtils.parseJSON(chunk);
 		
 		FileParser.parseChunkMetadata(obj);
 	}
@@ -47,7 +48,7 @@ public class P2PMetadataParserTests {
 		String chunk = "{\r\n" + 
 				"			\"size\": 128812, \r\n" + 
 				"		}";
-		JSONObject obj = MessageParser.parseJSON(chunk);
+		JSONObject obj = MessageParserUtils.parseJSON(chunk);
 		
 		FileParser.parseChunkMetadata(obj);
 	}
@@ -56,7 +57,7 @@ public class P2PMetadataParserTests {
 		String chunk = "{\r\n" + 
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}";
-		JSONObject obj = MessageParser.parseJSON(chunk);
+		JSONObject obj = MessageParserUtils.parseJSON(chunk);
 		
 		FileParser.parseChunkMetadata(obj);
 	}
@@ -73,7 +74,7 @@ public class P2PMetadataParserTests {
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}]" + 
 				"}";
-		JSONObject obj = MessageParser.parseJSON(file);
+		JSONObject obj = MessageParserUtils.parseJSON(file);
 		
 		FileMetadata meta = FileParser.parseFileMetadata(obj);
 		
@@ -99,7 +100,7 @@ public class P2PMetadataParserTests {
 				"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 				"		}]" + 
 				"}";
-		JSONObject obj = MessageParser.parseJSON(file);
+		JSONObject obj = MessageParserUtils.parseJSON(file);
 		
 		FileParser.parseFileMetadata(obj);
 	}
@@ -113,7 +114,7 @@ public class P2PMetadataParserTests {
 			"			\"hash\": \"de04d58dc5ccc4b9671c3627fb8d626fe4a15810bc1fe3e724feea761965fb71\"\r\n" + 
 			"		}]" + 
 			"}";
-		JSONObject obj = MessageParser.parseJSON(file);
+		JSONObject obj = MessageParserUtils.parseJSON(file);
 		
 		FileParser.parseFileMetadata(obj);
 	}
@@ -124,7 +125,7 @@ public class P2PMetadataParserTests {
 				"		\"hash\": \"d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db\",\r\n" + 
 				"		\r\n" + 
 				"}";
-		JSONObject obj = MessageParser.parseJSON(file);
+		JSONObject obj = MessageParserUtils.parseJSON(file);
 		
 		FileParser.parseFileMetadata(obj);
 	}
@@ -135,7 +136,7 @@ public class P2PMetadataParserTests {
 				"		\"hash\": \"d48ff4b2f68a10fd7c86f185a6ccede0dc0f2c48538d697cb33b6ada3f1e85db\",\r\n" + 
 				"		\"chunks\":[]\r\n" + 
 				"}";
-		JSONObject obj = MessageParser.parseJSON(file);
+		JSONObject obj = MessageParserUtils.parseJSON(file);
 		
 		FileParser.parseFileMetadata(obj);
 	}
