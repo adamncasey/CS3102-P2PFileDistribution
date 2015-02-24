@@ -67,7 +67,7 @@ public class PeerConnection implements Runnable {
 	@Override
 	public void run() {
 		// Advertise chunks!
-		
+		advertiseChunks();
 		
 		while(!stopRequested()) {
 			Message msg;
@@ -93,6 +93,11 @@ public class PeerConnection implements Runnable {
 		}
 	}
 	
+	private void advertiseChunks() {
+		dsadsadsadsa
+		
+	}
+
 	public synchronized void stop() {
 		this.shouldStop = true;
 		
@@ -138,7 +143,7 @@ public class PeerConnection implements Runnable {
 			}
 			
 			// Pick a chunk we don't have but they have, then request it!
-			
+			// TODO Request chunk!!
 			
 		} else if(msg.payload.cmd.equals("request_chunk")) {
 			RequestChunkJSONMessage message = (RequestChunkJSONMessage) msg.payload;

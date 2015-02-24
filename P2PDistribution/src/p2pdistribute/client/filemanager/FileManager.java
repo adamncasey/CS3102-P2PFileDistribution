@@ -28,6 +28,8 @@ public class FileManager {
 		this.metadata = metadata;
 		
 		files = new P2PFile[metadata.files.length];
+		
+		status = new AcquisitionStatus(this.numFiles(), this.numChunks());
 	}
 	
 

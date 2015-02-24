@@ -45,10 +45,14 @@ public class PeerManager {
 		if((!fileManager.complete()) && (connManager.getNumPeers() < MAX_PEERS)) {
 			Peer selectedPeer = selectNewPeer(peers);
 			
-			PeerConnection peerConn = connectToPeer(selectedPeer);
-			if(peerConn != null) {
-				connManager.addPeer(peerConn);
+			if(selectedPeer != null) {
+
+				PeerConnection peerConn = connectToPeer(selectedPeer);
+				if(peerConn != null) {
+					connManager.addPeer(peerConn);
+				}
 			}
+			
 		}
 		
 		return true;
@@ -69,11 +73,15 @@ public class PeerManager {
 
 	public void updatePeerList() throws PeerManagerException {
 		
+		Peer[] peers;
+		
 		try {
 			peers = smConn.getPeerList(fileManager.metadata.metaHash);
 		} catch (IOException e) {
 			throw new PeerManagerException("Communication Error with Swarm Manager: " + e.getMessage());
 		}
+		
+		// Take us out of this list.
 	}
 	
 	private Peer selectNewPeer(Peer[] peers) {

@@ -45,7 +45,7 @@ public class ClientMain {
 
 		// TODO If we are not done or not everyone we are connected to is complete: keep going
 		
-		while(!fileManager.complete() || !peerManager.complete()) {
+		while(!fileManager.complete() || /*!peerManager.complete()*/ true) {
 			//TODO Handle starved swarm?
 			try {
 				peerManager.run(); 

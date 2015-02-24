@@ -36,6 +36,8 @@ public class SwarmManagerMain {
 		
 		while(!server.isClosed()) {
 			
+			// TODO prune threadList?
+			
 			Socket client;
 			try {
 				client = server.accept();

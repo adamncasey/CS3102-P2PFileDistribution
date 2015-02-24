@@ -21,7 +21,6 @@ public class SwarmManagerConnection {
 	public final InetAddress smAddress;
 	public final int port;
 	
-	
 	private Socket socket;
 	private BufferedReader reader;
 	private OutputStream out;
@@ -96,8 +95,10 @@ public class SwarmManagerConnection {
 	}
 
 	private void disconnect() {
-		// TODO write disconnect
-		
-		// close socket
+		try {
+			socket.close();
+		} catch (IOException e) {
+			System.err.println("Cannot close socket. No idea");
+		}
 	}
 }

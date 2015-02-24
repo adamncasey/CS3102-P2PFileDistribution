@@ -18,7 +18,14 @@ public class SwarmIndex extends HashMap<String, List<Peer>> {
 			peers = new LinkedList<Peer>();
 		}
 		
-		peers.add(new Peer(address, port));
+		Peer newPeer = new Peer(address, port);
+		
+		if(peers.contains(newPeer)) {
+			System.out.println("Pre-registered client registered");
+			return;
+		}
+		
+		peers.add(newPeer);
 		
 		this.put(hash, peers);
 	}

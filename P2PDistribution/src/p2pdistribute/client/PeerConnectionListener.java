@@ -16,6 +16,7 @@ public class PeerConnectionListener implements Runnable {
 		server = new ServerSocket(0);
 		acManager = connManager;
 		this.fileManager = fileManager;
+		System.out.println("Listening: " + server.getInetAddress().toString() + ":" + server.getLocalPort());
 	}
 	
 	public void stop() {
