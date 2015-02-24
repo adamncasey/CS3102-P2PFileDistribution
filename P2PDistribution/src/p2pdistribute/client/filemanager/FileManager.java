@@ -51,7 +51,7 @@ public class FileManager {
 		}
 		else {
 			createDirectory(destinationFolder);
-		}		
+		}
 	}
 	private void createDirectory(Path path) throws FileManagerSetupException {
 		
@@ -116,7 +116,6 @@ public class FileManager {
 		this.status.setStatus(fileid, chunkid, status);
 	}
 	
-	// Store file/chunk progress (COMPLETE, INPROGRESS, NONE)
 	public boolean complete() {
 		return status.complete();
 	}

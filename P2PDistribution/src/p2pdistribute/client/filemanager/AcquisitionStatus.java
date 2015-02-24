@@ -10,7 +10,7 @@ public class AcquisitionStatus {
 		status = new Status[numFiles][];
 	}
 	
-	public void setStatus(int fileid, int chunkid, Status status) {
+	public synchronized void setStatus(int fileid, int chunkid, Status status) {
 		ensureSize(fileid, chunkid);
 		
 		this.status[fileid][chunkid] = status;
@@ -31,11 +31,11 @@ public class AcquisitionStatus {
 		}
 	}
 
-	public void setStatus(int fileid, Status[] chunkStatuses) {
+	public synchronized void setStatus(int fileid, Status[] chunkStatuses) {
 		this.status[fileid] = chunkStatuses;
 	}
 	
-	public int numChunksIncomplete() {
+	public synchronized int numChunksIncomplete() {
 		int total = 0;
 		
 		for(Status[] chunkStatuses : status) {
@@ -49,7 +49,7 @@ public class AcquisitionStatus {
 		return total;
 	}
 
-	public int numChunksComplete() {
+	public synchronized int numChunksComplete() {
 		int total = 0;
 		
 		for(Status[] chunkStatuses : status) {
@@ -63,7 +63,7 @@ public class AcquisitionStatus {
 		return total;
 	}
 	
-	public boolean complete() {
+	public synchronized boolean complete() {
 		for(Status[] chunkStatuses : status) {
 			for(Status status : chunkStatuses) {
 				if(!status.equals(Status.COMPLETE)) {
@@ -77,12 +77,13 @@ public class AcquisitionStatus {
 	
 	/**
 	 * Selects a chunk that peer possesses which we do not.
+	 * The chunk picked is set to be INPROGRESS and no other peer can request this chunk.
 	 * @param peer
 	 * @return [fileid, chunkid] if a chunk is found.
 	 * @return null if peer status is not compatible with ours (incompatible number of files / chunks)
 	 * @return null if no useful chunk is found
 	 */
-	public int[] pickUsefulChunk(AcquisitionStatus peer) {
+	public synchronized int[] pickUsefulChunk(AcquisitionStatus peer) {
 		
 		if(peer.status.length != status.length) {
 			return null;
@@ -98,7 +99,8 @@ public class AcquisitionStatus {
 			
 			for(int j=0; j<ourRow.length; j++) {
 				if(theirRow[j] == Status.COMPLETE) {
-					if(ourRow[j] != Status.COMPLETE) {
+					if(ourRow[j] != Status.COMPLETE && ourRow[j] != Status.INPROGRESS) {
+						ourRow[j] = Status.INPROGRESS;
 						return new int[] { i, j };
 					}
 				}
@@ -107,7 +109,7 @@ public class AcquisitionStatus {
 		return null;
 	}
 	
-	public int[][] getCompleteFileChunkIDs() {
+	public synchronized int[][] getCompleteFileChunkIDs() {
 		LinkedList<int[]> list = new LinkedList<>();
 		
 		for(int i=0; i<status.length; i++) {

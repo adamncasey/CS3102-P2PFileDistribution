@@ -55,9 +55,9 @@ public class ClientMain {
 				break;
 			}
 			
-			Thread.sleep(5000);
+			Thread.sleep(500);
 			
-			System.out.println("Download Progress: \n\tFinished?:" + fileManager.complete());
+			//System.out.println("Download Progress: \n\tFinished?:" + fileManager.complete());
 		}		
 		
 		peerManager.waitForPeers();

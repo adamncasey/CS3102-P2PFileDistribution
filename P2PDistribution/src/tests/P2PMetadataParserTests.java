@@ -10,7 +10,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import p2pdistribute.common.message.MessageParserUtils;
-import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.p2pmeta.FileMetadata;
 import p2pdistribute.common.p2pmeta.FileParser;
 import p2pdistribute.common.p2pmeta.P2PMetadata;
