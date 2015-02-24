@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import org.apache.commons.codec.binary.Hex;
 
 import p2pdistribute.common.Peer;
+import p2pdistribute.common.message.MessageParserUtils;
 import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
@@ -65,7 +66,7 @@ public class SwarmManagerConnection {
 	}
 	
 	private void sendMessage(SwarmManagerMessage msg) throws IOException {
-		String serialised = SwarmManagerMessageParser.serialiseMessageAsJSON(msg);
+		String serialised = MessageParserUtils.serialiseMessageAsJSON(msg);
 		
 		try {
 			out.write(serialised.getBytes("UTF-8"));

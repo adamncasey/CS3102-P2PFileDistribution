@@ -46,6 +46,7 @@ public class P2PMessageParser {
 	}
 	
 	private static DataMessage readDataMessage(InputStream stream, byte version, int length) throws IOException {
+		System.out.println("readDataMessage: " + length + "bytes");
 		
 		// read 1 byte (hash length): N
 		short hashLength = getShortFromByte(readBytes(stream, 1)[0]);
@@ -76,6 +77,8 @@ public class P2PMessageParser {
 
 		String cmd = (String)obj.get("cmd");
 		String metaHash = (String)obj.get("meta_hash");
+		
+		System.out.println("readControlMessage: " + cmd);
 		
 		JSONMessage payload = parseControlJSONMessage(obj, cmd, metaHash);
 		
@@ -164,8 +167,45 @@ public class P2PMessageParser {
 	}
 	
 	private static short getShortFromByte(byte value) {
-		// Required to avoid negative weirdness with java bytes :(
+		// TODO Required to avoid negative weirdness with java bytes :(
 		byte[] bytes = new byte[] { 0x00, value };
 		return ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN).getShort();
+	}
+
+	public static byte[] serialiseJSONMessage(JSONMessage payload) {
+		byte[] json = MessageParserUtils.serialiseMessageAsJSON(payload).getBytes();
+		
+		// TODO Bounds check JSON (< 2^24)
+		
+		ByteBuffer buffer = ByteBuffer.allocate(4 + json.length).order(ByteOrder.BIG_ENDIAN);
+		buffer.putInt(json.length);
+		
+		buffer.put(json);
+		
+		byte[] data = buffer.array();
+		data[0] = 0; // Set version and MessageType to zero.
+		
+		return data;
+	}
+
+	public static byte[] serialiseData(byte[] data, byte[] metaHash, int fileid, int chunkid) {
+		
+		int length = 1 + metaHash.length + 4 + 4 + data.length; 
+		
+		ByteBuffer dataBuffer = ByteBuffer.allocate(4 + length).order(ByteOrder.BIG_ENDIAN);
+		dataBuffer.putInt(length);
+
+		dataBuffer.put((byte)metaHash.length);
+		dataBuffer.put(metaHash);
+		dataBuffer.putInt(fileid);
+		dataBuffer.putInt(chunkid);
+		dataBuffer.put(data);
+		
+		byte[] serialised = dataBuffer.array();
+		
+		// Set first two bytes to 0x01 (version zero, MessageType 1)
+		serialised[0] = 0x01;
+		
+		return serialised;
 	}
 }

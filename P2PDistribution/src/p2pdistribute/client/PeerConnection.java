@@ -67,7 +67,12 @@ public class PeerConnection implements Runnable {
 	@Override
 	public void run() {
 		// Advertise chunks!
-		advertiseChunks();
+		try {
+			advertiseChunks();
+		} catch (IOException e1) {
+			System.err.println("Error occured when advertising chunks");
+			stop();
+		}
 		
 		while(!stopRequested()) {
 			Message msg;
@@ -80,8 +85,12 @@ public class PeerConnection implements Runnable {
 				System.out.println("Peer sent malformed message. Probably not recoverable...");
 				break;
 			}
-			
-			handleMessage(msg);
+			try {
+				handleMessage(msg);
+			} catch(IOException e) {
+				System.out.println("Could not send reply to message");
+				break;
+			}
 		}
 		
 		// writeThread.join();
@@ -93,9 +102,18 @@ public class PeerConnection implements Runnable {
 		}
 	}
 	
-	private void advertiseChunks() {
-		dsadsadsadsa
+	private void advertiseChunks() throws IOException {
+		// Get all the chunks we have from localFiles
+		int[][] completeChunks = localFiles.status.getCompleteFileChunkIDs();
 		
+		// Make a AdvertiseJSONMessage using this data
+		AdvertiseJSONMessage payload = new AdvertiseJSONMessage(completeChunks, localFiles.metadata.metaHash);
+		
+		byte[] messageBytes = P2PMessageParser.serialiseJSONMessage(payload);
+		
+		// Send
+		System.out.println("Writing chunks to stream: " + new String(messageBytes));
+		sock.getOutputStream().write(messageBytes);
 	}
 
 	public synchronized void stop() {
@@ -114,13 +132,16 @@ public class PeerConnection implements Runnable {
 		return shouldStop;
 	}
 	
-	private void handleMessage(Message msg) {
+	private void handleMessage(Message msg) throws IOException {
+		System.out.println("handleMessage " + msg.type);
 		
 		if(msg.type == MessageType.CONTROL) {
 			handleControlMessage((ControlMessage)msg);
 			
 		} else if(msg.type == MessageType.DATA) {
 			handleDataMessage((DataMessage)msg);
+		} else {
+			System.err.println("Received unknown MessageType: " + msg.type);
 		}
 	}
 	
@@ -134,23 +155,46 @@ public class PeerConnection implements Runnable {
 		}
 	}
 
-	private void handleControlMessage(ControlMessage msg) {
-		if(msg.payload.cmd.equals("advertise_chunk")) {
+	private void handleControlMessage(ControlMessage msg) throws IOException {
+		if(msg.payload.cmd.equals("advertise_chunks")) {
 			AdvertiseJSONMessage message = (AdvertiseJSONMessage) msg.payload;
 
 			for(Entry<Integer, Integer> value : message.chunksComplete.entrySet()) {
 				peerStatus.setStatus(value.getKey(), value.getValue(), Status.COMPLETE);
 			}
 			
-			// Pick a chunk we don't have but they have, then request it!
-			// TODO Request chunk!!
+			requestChunk();
 			
 		} else if(msg.payload.cmd.equals("request_chunk")) {
 			RequestChunkJSONMessage message = (RequestChunkJSONMessage) msg.payload;
 			 // Send chunk... blocking? Why not? Well.. advertising new chunks asynchronously will not for one reason. 
 			System.out.println("Chunk requested: " + message.fileid + "/" + message.chunkid + ". No chance yet.");
+			
+			// TODO Verify?
+			byte[] data = localFiles.getChunkData(message.fileid, message.chunkid);
+			
+			byte[] messageData = P2PMessageParser.serialiseData(data, localFiles.metadata.metaHash, message.fileid, message.chunkid);
+			sock.getOutputStream().write(messageData);
+			System.out.println("Writing chunks to stream: " + new String(messageData));
 		}
 		
+	}
+
+	private void requestChunk() throws IOException {
+		int[] chunk = localFiles.status.pickUsefulChunk(peerStatus);
+		
+		if(chunk == null) {
+			// Peer has no useful chunks for us
+			System.out.println("Peer has no useful chunks for us");
+			return;
+		}
+		
+		RequestChunkJSONMessage payload = new RequestChunkJSONMessage(chunk[0], chunk[1], localFiles.metadata.metaHash);
+		
+		byte[] messageData = P2PMessageParser.serialiseJSONMessage(payload);
+		
+		sock.getOutputStream().write(messageData);
+		System.out.println("Writing chunks to stream: " + new String(messageData));
 	}
 
 	public void advertiseChunk(int fileid, int chunkid) {

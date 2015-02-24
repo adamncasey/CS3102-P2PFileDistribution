@@ -35,4 +35,12 @@ public class MessageParserUtils {
 
         return false;
     }
+
+	public static String serialiseMessageAsJSON(JSONMessage msg) {
+		JSONObject obj = new JSONObject(msg.getJSON());
+		
+		String line = obj.toJSONString() + "\n";
+		
+		return line;
+	}
 }

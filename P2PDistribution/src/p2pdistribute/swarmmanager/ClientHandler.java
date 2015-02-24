@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.List;
 
 import p2pdistribute.common.Peer;
+import p2pdistribute.common.message.MessageParserUtils;
 import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
@@ -77,7 +78,7 @@ public class ClientHandler implements Runnable {
 		
 		SwarmManagerMessage msg = new SwarmManagerMessage("peers", metaHash, peersArray);
 		
-		writer.print(SwarmManagerMessageParser.serialiseMessageAsJSON(msg));
+		writer.print(MessageParserUtils.serialiseMessageAsJSON(msg));
 		writer.flush();
 		System.out.println("Sent peer list to client");
 	}

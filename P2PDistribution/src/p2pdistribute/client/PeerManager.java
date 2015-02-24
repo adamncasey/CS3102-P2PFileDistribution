@@ -50,12 +50,30 @@ public class PeerManager {
 				PeerConnection peerConn = connectToPeer(selectedPeer);
 				if(peerConn != null) {
 					connManager.addPeer(peerConn);
+				} else {
+					// Don't connect to this peer again for a while
+					removePeer(selectedPeer);
 				}
 			}
 			
 		}
 		
 		return true;
+	}
+
+	private void removePeer(Peer selectedPeer) {
+		// TODO Would be nice if peer was choked for only a limited time.
+		
+		Peer[] newPeers = new Peer[this.peers.length - 1];
+		
+		int i=0;
+		
+		for(Peer peer : this.peers) {
+			if(peer.equals(selectedPeer)) {
+				continue;
+			}
+			newPeers[i++] = peer;
+		}
 	}
 
 	private void pruneConnections() {
@@ -81,7 +99,9 @@ public class PeerManager {
 			throw new PeerManagerException("Communication Error with Swarm Manager: " + e.getMessage());
 		}
 		
-		// Take us out of this list.
+		// TODO Take us out of this list.
+		
+		this.peers = peers;
 	}
 	
 	private Peer selectNewPeer(Peer[] peers) {
@@ -101,7 +121,7 @@ public class PeerManager {
 			PeerConnection conn = new PeerConnection(peer, fileManager);
 			return conn;
 		} catch(IOException e) {
-			System.out.println("Could not connect to peer: " + e.getMessage());
+			System.out.println("Could not connect to peer(" + peer.address.toString() + ":" + peer.port + "): " + e.getMessage());
 			// Unable to connect to peer.
 			return null;
 		}

@@ -12,14 +12,6 @@ import p2pdistribute.common.p2pmeta.ParserException;
 
 public class SwarmManagerMessageParser {
 
-	public static String serialiseMessageAsJSON(JSONMessage msg) {
-		JSONObject obj = new JSONObject(msg.getJSON());
-		
-		String line = obj.toJSONString() + "\n";
-		
-		return line;
-	}
-	
 	/**
 	 * Ensures json passed in is well-formed, and conforms to the basic requirement of every network message
 	 * @param json

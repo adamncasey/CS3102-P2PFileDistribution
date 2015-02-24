@@ -20,7 +20,7 @@ public class FileManager {
 	
 	public final P2PMetadata metadata;
 	
-	private AcquisitionStatus status;
+	public AcquisitionStatus status;
 	
 	public FileManager(P2PMetadata metadata, String destinationPath) {
 		destinationFolder = Paths.get(destinationPath);
