@@ -7,7 +7,7 @@ import java.util.Map;
 
 import p2pdistribute.common.Peer;
 
-public class SwarmManagerMessage extends ControlMessage {
+public class SwarmManagerMessage extends JSONMessage {
 	
 	private final Integer port;
 	private final Peer[] peers;

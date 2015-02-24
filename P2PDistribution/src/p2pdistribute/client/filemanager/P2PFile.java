@@ -13,9 +13,7 @@ public class P2PFile {
 	public final long fileSize;
 	
 	private final Path destinationFolder;
-	
 	private P2PChunk[] chunks;
-	
 	private RandomAccessFile file;
 	
 	public P2PFile(Path destination, FileMetadata meta, HashAlgorithm hashFunc) {
@@ -31,6 +29,15 @@ public class P2PFile {
 		}
 	}
 
+	/**
+	 * Prepares the file for downloading/uploading
+	 * Will ensure files exist, and are of the correct size
+	 * 
+	 * If some chunks are already owned, this will be reflected in the return value
+	 * 
+	 * @return
+	 * @throws P2PFilePreparationException - Unable to create/expand/read to files
+	 */
 	public Status[] prepare() throws P2PFilePreparationException {
 		
 		allocateFile();
@@ -38,24 +45,61 @@ public class P2PFile {
 		return verifyChunks();
 	}
 	
+	/**
+	 * Returns the number of chunks this file is made up of
+	 * @return
+	 */
 	public int getTotalChunks() {
 		return meta.chunks.length;
 	}
 	
-	public void writeChunkData(int chunkid, byte[] data) {
-		// TODO write writeChunkData
-		throw new RuntimeException("not implemented");
+	/**
+	 * Writes the chunk data to the file, and returns the Status of the chunk after writing the data
+	 * @param chunkid - Chunk ID to write data to
+	 * @param data - The data to write into Chunk ID.
+	 * @return
+	 * @throws IOException
+	 */
+	public Status writeChunkData(int chunkid, byte[] data) throws IOException {
+		assert chunkid < chunks.length;
+	
+		if(data.length != chunks[chunkid].meta.size) {
+			System.err.println("Received unexpected chunk data length");
+			return Status.INCOMPLETE;
+		}
+		long offset = getChunkOffset(chunkid);
 		
-		// Write data into file at correct location
+		file.seek(offset);
+		file.write(data, 0, data.length);
 		
-		// verify chunk again.
+		return chunks[chunkid].verifyChunk(data);
+	}
+
+	/**
+	 * Reads chunk data from disk
+	 * @param chunkid
+	 * @return
+	 * @throws IOException
+	 */
+	public byte[] readChunkData(int chunkid) throws IOException {
+		assert chunkid < chunks.length; // TODO Exception here?
+		long offset = getChunkOffset(chunkid);
+		
+		file.seek(offset);
+		byte[] data = new byte[meta.chunks[chunkid].size];
+		file.read(data, 0, data.length);
+
+		return data;
 	}
 	
-	public byte[] readChunkData(int chunkid) {
-		// TODO Write readChunkData
-		throw new RuntimeException("not implemented");
+	private long getChunkOffset(int chunkid) {
+
+		long offset = 0;
+		for(int i=0; i<chunkid; i++) {
+			offset += chunks[i].meta.size;
+		}
 		
-		// Read data from file at correct location
+		return offset;
 	}
 	
 	private void allocateFile() throws P2PFilePreparationException {

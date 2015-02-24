@@ -91,21 +91,27 @@ public class FileManager {
 		}
 	}
 	
-	public void getChunkData(int fileid, int chunkid) {
-		// TODO getChunkData
+	public byte[] getChunkData(int fileid, int chunkid) throws IOException {
+
+		if(fileid >= files.length) {
+			System.err.println("Err wtf");
+			throw new IOException("Invalid FileID: " + fileid + ". Num files: " + files.length);
+		}
+		
+		return files[fileid].readChunkData(chunkid);
 	}
 	
 	
-	public void setChunkData(int fileid, int chunkid, int data) {
-		// TODO setChunkData
+	public void setChunkData(int fileid, int chunkid, byte[] data) throws IOException {
 		
-		// If we don't already have it
+		if(fileid >= files.length) {
+			System.err.println("Err wtf");
+			throw new IOException("Invalid FileID: " + fileid + ". Num files: " + files.length);
+		}
 		
-		// verify contents
+		Status status = files[fileid].writeChunkData(chunkid, data);
 		
-		// write to disk
-		
-		// Set chunk status to be COMPLETE
+		this.status.setStatus(fileid, chunkid, status);
 	}
 	
 	// Store file/chunk progress (COMPLETE, INPROGRESS, NONE)

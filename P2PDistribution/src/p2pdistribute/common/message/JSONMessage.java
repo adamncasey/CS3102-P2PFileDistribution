@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class ControlMessage extends Message {
+public class JSONMessage {
 	public final String cmd;
 	public final String metaHash;
 	
-	public ControlMessage(String cmd, String metaHash) {
+	public JSONMessage(String cmd, String metaHash) {
 		this.cmd = cmd;
 		this.metaHash = metaHash;
 	}
@@ -45,7 +45,7 @@ public class ControlMessage extends Message {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ControlMessage other = (ControlMessage) obj;
+		JSONMessage other = (JSONMessage) obj;
 		if (cmd == null) {
 			if (other.cmd != null)
 				return false;

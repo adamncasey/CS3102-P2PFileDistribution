@@ -12,7 +12,7 @@ import p2pdistribute.common.p2pmeta.ParserException;
 
 public class SwarmManagerMessageParser {
 
-	public static String serialiseMessageAsJSON(ControlMessage msg) {
+	public static String serialiseMessageAsJSON(JSONMessage msg) {
 		JSONObject obj = new JSONObject(msg.getJSON());
 		
 		String line = obj.toJSONString() + "\n";
