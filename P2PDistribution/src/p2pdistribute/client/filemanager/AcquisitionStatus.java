@@ -1,23 +1,36 @@
 package p2pdistribute.client.filemanager;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 
 public class AcquisitionStatus {
 
 	private Status[][] status;
 	
-	public AcquisitionStatus(int numFiles, int numChunks) {
-		status = new Status[numFiles][numChunks];
-		
-		for(Status[] row : status) {
-			Arrays.fill(row, Status.UNKNOWN);
-		}
+	public AcquisitionStatus(int numFiles) {
+		status = new Status[numFiles][];
 	}
 	
 	public void setStatus(int fileid, int chunkid, Status status) {
+		ensureSize(fileid, chunkid);
+		
 		this.status[fileid][chunkid] = status;
 	}
+	private void ensureSize(int fileid, int chunkid) {
+		
+		if(this.status[fileid] == null || this.status[fileid].length <= chunkid) {
+			Status[] old = this.status[fileid];
+			
+			this.status[fileid] = new Status[chunkid + 1];
+			
+			if(old != null) {
+				int i=0;
+				for(Status stat : old) {
+					this.status[fileid][i++] = stat;
+				}
+			}
+		}
+	}
+
 	public void setStatus(int fileid, Status[] chunkStatuses) {
 		this.status[fileid] = chunkStatuses;
 	}
@@ -79,11 +92,11 @@ public class AcquisitionStatus {
 			Status[] ourRow = status[i];
 			Status[] theirRow = peer.status[i];
 			
-			if(ourRow.length != theirRow.length) {
+			if(theirRow == null || (ourRow.length != theirRow.length)) {
 				return null;
 			}
 			
-			for(int j=0; j<status.length; j++) {
+			for(int j=0; j<ourRow.length; j++) {
 				if(theirRow[j] == Status.COMPLETE) {
 					if(ourRow[j] != Status.COMPLETE) {
 						return new int[] { i, j };
@@ -98,7 +111,7 @@ public class AcquisitionStatus {
 		LinkedList<int[]> list = new LinkedList<>();
 		
 		for(int i=0; i<status.length; i++) {
-			for(int j=0; j<status.length; j++) {
+			for(int j=0; j<status[i].length; j++) {
 				if(status[i][j] == Status.COMPLETE) {
 					list.add(new int[] { i, j});
 				}

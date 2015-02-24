@@ -3,6 +3,7 @@ package p2pdistribute.client;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.List;
 import java.util.Map.Entry;
 
 import p2pdistribute.client.filemanager.AcquisitionStatus;
@@ -55,7 +56,7 @@ public class PeerConnection implements Runnable {
 		
 		localFiles = fileManager;
 		
-		peerStatus = new AcquisitionStatus(localFiles.numFiles(), localFiles.numChunks());
+		peerStatus = new AcquisitionStatus(localFiles.numFiles());
 		
 		shouldStop = false;
 		
@@ -148,19 +149,27 @@ public class PeerConnection implements Runnable {
 	private void handleDataMessage(DataMessage msg) {
 		try {
 			localFiles.setChunkData(msg.fileid, msg.chunkid, msg.data);
+			
+			// Ask for a new chunk once this is done.
+			requestChunk();
 		} catch (IOException e) {
 			System.out.println("Error writing fileid/chunkid: " + msg.fileid + "/" + msg.chunkid);
 			System.out.println(e.getMessage());
 			return;
 		}
+		
 	}
 
 	private void handleControlMessage(ControlMessage msg) throws IOException {
 		if(msg.payload.cmd.equals("advertise_chunks")) {
 			AdvertiseJSONMessage message = (AdvertiseJSONMessage) msg.payload;
 
-			for(Entry<Integer, Integer> value : message.chunksComplete.entrySet()) {
-				peerStatus.setStatus(value.getKey(), value.getValue(), Status.COMPLETE);
+			for(List<Integer> value : message.chunksComplete) {
+				if(value.size() < 2) {
+					System.out.println("Received badly formed message from peer");
+					return;
+				}
+				peerStatus.setStatus(value.get(0), value.get(1), Status.COMPLETE);
 			}
 			
 			requestChunk();
@@ -175,7 +184,6 @@ public class PeerConnection implements Runnable {
 			
 			byte[] messageData = P2PMessageParser.serialiseData(data, localFiles.metadata.metaHash, message.fileid, message.chunkid);
 			sock.getOutputStream().write(messageData);
-			System.out.println("Writing chunks to stream: " + new String(messageData));
 		}
 		
 	}

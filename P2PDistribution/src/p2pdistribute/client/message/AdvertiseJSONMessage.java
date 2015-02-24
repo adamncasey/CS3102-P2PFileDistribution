@@ -14,9 +14,9 @@ import p2pdistribute.common.message.JSONMessage;
 public class AdvertiseJSONMessage extends JSONMessage {
 	
 	// Map<FileID, ChunkID>.
-	public final Map<Integer, Integer> chunksComplete;
+	public final List<List<Integer>> chunksComplete;
 
-	public AdvertiseJSONMessage(Map<Integer, Integer> chunksComplete, String cmd, String metaHash) {
+	public AdvertiseJSONMessage(List<List<Integer>> chunksComplete, String cmd, String metaHash) {
 		super(cmd, metaHash);
 		
 		this.chunksComplete = chunksComplete;
@@ -25,21 +25,14 @@ public class AdvertiseJSONMessage extends JSONMessage {
 	public AdvertiseJSONMessage(int[][] chunksComplete, byte[] metaHash) {
 		super("advertise_chunks", new String(Hex.encodeHex(metaHash)));
 		
-		this.chunksComplete = convertIntsToMap(chunksComplete);
+		this.chunksComplete = convertIntsToLists(chunksComplete);
 	}
 
 	@Override
 	public Map<String, Object> getJSON() {
 		Map<String, Object> map = super.getJSON();
 		
-		List<List<Integer>> chunks = new LinkedList<>();
-		
-		for(Entry<Integer, Integer> entry : chunksComplete.entrySet()) {
-			Integer[] filechunkid = new Integer[] { entry.getKey(), entry.getValue() }; 
-			chunks.add(Arrays.asList(filechunkid));
-		}
-		
-		map.put("chunks", chunks);
+		map.put("chunks", chunksComplete);
 		
 		return map;
 	}
@@ -48,14 +41,15 @@ public class AdvertiseJSONMessage extends JSONMessage {
 	 * Converts an array of arrays into a Map
 	 * @note No bounds checking is performed. This should only be called using a value which must be correct
 	 */
-	private Map<Integer, Integer> convertIntsToMap(int[][] chunksComplete) {
-		Map<Integer, Integer> map = new HashMap<>();
+	private List<List<Integer>> convertIntsToLists(int[][] chunksComplete) {
+		List<List<Integer>> list = new LinkedList<>();
 		
 		for(int[] row : chunksComplete) {
-			map.put(row[0], row[1]);
+			
+			list.add(Arrays.asList(new Integer[] { row[0], row[1] }));
 		}
 		
-		return map;
+		return list;
 	}
 
 }

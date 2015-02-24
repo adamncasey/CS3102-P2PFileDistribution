@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -46,7 +49,6 @@ public class P2PMessageParser {
 	}
 	
 	private static DataMessage readDataMessage(InputStream stream, byte version, int length) throws IOException {
-		System.out.println("readDataMessage: " + length + "bytes");
 		
 		// read 1 byte (hash length): N
 		short hashLength = getShortFromByte(readBytes(stream, 1)[0]);
@@ -78,7 +80,7 @@ public class P2PMessageParser {
 		String cmd = (String)obj.get("cmd");
 		String metaHash = (String)obj.get("meta_hash");
 		
-		System.out.println("readControlMessage: " + cmd);
+		System.out.println("readControlMessage: " + new String(data));
 		
 		JSONMessage payload = parseControlJSONMessage(obj, cmd, metaHash);
 		
@@ -100,11 +102,11 @@ public class P2PMessageParser {
 	private static JSONMessage parseAdvertiseMessage(JSONObject json, String cmd, String metaHash) throws ParserException {
 		MessageParserUtils.validateFieldType(json, "chunks", JSONArray.class);
 
-		HashMap<Integer, Integer> chunksComplete = new HashMap<>();
+		List<List<Integer>> chunksComplete = new LinkedList<>();
 		JSONArray chunks = (JSONArray)json.get("chunks");
 		for(Object obj : chunks) {
 			int[] values = parseFileChunkIDs(obj);
-			chunksComplete.put(values[0], values[1]);
+			chunksComplete.add(Arrays.asList(new Integer[] { values[0], values[1] }));
 		}
 		
 		return new AdvertiseJSONMessage(chunksComplete, cmd, metaHash);
