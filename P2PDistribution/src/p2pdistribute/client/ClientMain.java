@@ -21,13 +21,24 @@ public class ClientMain {
 		if(!checkArgs(args)) {
 			return;
 		}
+		boolean seed = false;
+		String p2pMetaFile = args[0];
+		String outputDir = args[1];
 		
-		P2PMetadata metadata = readP2PMetaFile(args[0]);
+		if(args.length == 3) {
+			if(args[0] == "--seed") {
+				seed = true;
+			}
+			p2pMetaFile = args[1];
+			outputDir = args[2];
+		}
+		
+		P2PMetadata metadata = readP2PMetaFile(p2pMetaFile);
 		if(metadata == null) {
 			return;
 		}
 		
-		FileManager fileManager = new FileManager(metadata, args[1]);
+		FileManager fileManager = new FileManager(metadata, outputDir);
 		try {
 			fileManager.setup();
 		} catch(FileManagerSetupException e) {
@@ -42,10 +53,8 @@ public class ClientMain {
 			System.err.println(e.getMessage());
 			return;
 		}
-
-		// TODO If we are not done or not everyone we are connected to is complete: keep going
 		
-		while(!fileManager.complete() || /*!peerManager.complete()*/ true) {
+		while(!fileManager.complete() || !peerManager.complete() || seed) {
 			//TODO Handle starved swarm?
 			try {
 				peerManager.run(); 
@@ -58,7 +67,7 @@ public class ClientMain {
 			Thread.sleep(500);
 			
 			//System.out.println("Download Progress: \n\tFinished?:" + fileManager.complete());
-		}		
+		}
 		
 		peerManager.waitForPeers();
 		
@@ -66,7 +75,9 @@ public class ClientMain {
 	}
 	
 	private static boolean checkArgs(String[] args) {
-		if(args.length < 2) {
+		// If releasing this as a product a proper argument parsing library should be used.
+		
+		if(args.length < 2 || args.length > 3) {
 			printHelp();
 			return false;
 		}
@@ -76,6 +87,7 @@ public class ClientMain {
 
 	private static void printHelp() {
 		System.out.println("Usage: <P2PMeta File> <Destination Folder>");
+		System.out.println("Optional Usage: --seed <P2PMeta File> <Destination Folder>");
 	}
 
 	public static P2PMetadata readP2PMetaFile(String filename) {

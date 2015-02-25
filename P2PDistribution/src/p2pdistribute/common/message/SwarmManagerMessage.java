@@ -35,7 +35,6 @@ public class SwarmManagerMessage extends JSONMessage {
 	
 	@Override
 	public Map<String, Object> getJSON() {
-		// TODO: This code is complicated.
 		Map<String, Object> map = super.getJSON();
 
 		if(this.port != null) {

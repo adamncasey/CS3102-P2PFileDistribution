@@ -4,11 +4,12 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class SwarmManagerMain {
 
-	public static final int PORT = 8889;
+	public static final int PORT = 8889; // TODO Future Task: Settings file. Or store SM Port in .p2pmeta file
 	
 	public static void main(String[] args) {
 		
@@ -36,7 +37,7 @@ public class SwarmManagerMain {
 		
 		while(!server.isClosed()) {
 			
-			// TODO prune threadList?
+			pruneThreads(listenThreads);
 			
 			Socket client;
 			try {
@@ -58,6 +59,23 @@ public class SwarmManagerMain {
 		stopThreads(listenThreads);
 	}
 	
+	private static void pruneThreads(LinkedList<Thread> listenThreads) {
+		Iterator<Thread> i = listenThreads.iterator();
+		while (i.hasNext()) {
+		   Thread thread = i.next();
+		   
+		   if(!thread.isAlive()) {
+				try {
+					thread.join();
+				} catch (InterruptedException e) {
+					// Interrupted waiting for join to perform. Little reason to pass this up the chain
+				}
+				
+				i.remove();
+			}
+		}
+	}
+
 	private static Thread startClientThread(Socket client, SwarmIndex index) {
 		Thread clientThread;
 		try {

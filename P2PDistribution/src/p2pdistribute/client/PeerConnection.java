@@ -134,7 +134,8 @@ public class PeerConnection implements Runnable {
 		try {
 			this.sock.shutdownInput();
 		} catch (IOException e) {
-			// TODO Handle exception?
+			// Means there is data in the buffer but the connection has terminated.
+			// Nothing to be done here really.
 		}
 		
 		// TODO tell writer thread to stop on completion.
@@ -170,13 +171,7 @@ public class PeerConnection implements Runnable {
 		if(msg.payload.cmd.equals("advertise_chunks")) {
 			AdvertiseJSONMessage message = (AdvertiseJSONMessage) msg.payload;
 
-			for(List<Integer> value : message.chunksComplete) {
-				if(value.size() < 2) {
-					System.out.println("Received badly formed message from peer");
-					return;
-				}
-				peerStatus.setStatus(value.get(0), value.get(1), Status.COMPLETE);
-			}
+			updatePeerStatus(message.chunksComplete);
 			
 			requestChunk();
 			
@@ -192,6 +187,22 @@ public class PeerConnection implements Runnable {
 			sock.getOutputStream().write(messageData);
 		}
 		
+	}
+
+	private void updatePeerStatus(List<List<Integer>> chunksComplete) {
+		for(List<Integer> value : chunksComplete) {
+			if(value.size() < 2) {
+				System.out.println("Received badly formed message from peer");
+				return;
+			}
+			peerStatus.setStatus(value.get(0), value.get(1), Status.COMPLETE);
+		}
+		
+		// If we are complete and they are complete, no reason to stay connected.
+		if(peerStatus.complete() && localFiles.complete()) {
+			System.out.println("Local and peer download complete. Disconnecting");
+			stop();
+		}
 	}
 
 	private void requestChunk() throws IOException {

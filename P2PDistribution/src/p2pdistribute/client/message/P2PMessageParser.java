@@ -168,7 +168,7 @@ public class P2PMessageParser {
 	}
 	
 	private static short getShortFromByte(byte value) {
-		// TODO Required to avoid negative weirdness with java bytes :(
+		// Used to avoid any issues with java's signed byte.
 		byte[] bytes = new byte[] { 0x00, value };
 		return ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN).getShort();
 	}
@@ -176,7 +176,13 @@ public class P2PMessageParser {
 	public static byte[] serialiseJSONMessage(JSONMessage payload) {
 		byte[] json = MessageParserUtils.serialiseMessageAsJSON(payload).getBytes();
 		
-		// TODO Bounds check JSON (< 2^24)
+		int length = json.length;
+		
+		// Bounds check (< 2^24)
+		if(length > 16777215) {
+			// Invalid length. Message will be clipped
+			length = 16777216;
+		}
 		
 		ByteBuffer buffer = ByteBuffer.allocate(4 + json.length).order(ByteOrder.BIG_ENDIAN);
 		buffer.putInt(json.length);

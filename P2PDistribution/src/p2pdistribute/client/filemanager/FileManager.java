@@ -42,7 +42,6 @@ public class FileManager {
 	}
 
 	private void prepareDirectory() throws FileManagerSetupException {
-		// TODO Warning if directory not empty? Could overwrite files.
 		
 		if(Files.exists(destinationFolder)) {
 			if(!Files.isDirectory(destinationFolder)) {

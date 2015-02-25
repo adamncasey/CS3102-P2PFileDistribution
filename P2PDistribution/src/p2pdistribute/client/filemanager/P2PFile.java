@@ -82,7 +82,10 @@ public class P2PFile {
 	 * @throws IOException
 	 */
 	public byte[] readChunkData(int chunkid) throws IOException {
-		assert chunkid < chunks.length; // TODO Exception here?
+		if(chunkid < chunks.length) {
+			
+			throw new IOException("Cannot read invalid chunkid.");
+		}
 		long offset = getChunkOffset(chunkid);
 		
 		file.seek(offset);

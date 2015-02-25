@@ -16,7 +16,7 @@ public class PeerManager {
 	
 	ActiveConnectionManager connManager;
 	
-	public final int MAX_PEERS = 10; // TODO: Tweak / settings file?
+	public final int MAX_PEERS = 10; // TODO Future Change: Settings file
 	
 	public PeerManager(String swarmManagerHostname, int port, FileManager fileManager) throws PeerManagerException {
 		
@@ -62,7 +62,7 @@ public class PeerManager {
 	}
 
 	private void removePeer(Peer selectedPeer) {
-		// TODO Would be nice if peer was choked for only a limited time.
+		// TODO Would be nice if peer was choked for only a limited time. 
 		
 		Peer[] newPeers = new Peer[this.peers.length - 1];
 		
@@ -98,8 +98,6 @@ public class PeerManager {
 		} catch (IOException e) {
 			throw new PeerManagerException("Communication Error with Swarm Manager: " + e.getMessage());
 		}
-		
-		// TODO Take us out of this list.
 		
 		this.peers = peers;
 	}
