@@ -1,20 +1,59 @@
 package p2pdistribute.client.filemanager;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public class AcquisitionStatus {
 
 	private Status[][] status;
+	private List<ChunkStatusChangeHandler> handlers;
 	
 	public AcquisitionStatus(int numFiles) {
 		status = new Status[numFiles][];
+		
+		handlers = new LinkedList<>();
 	}
 	
-	public synchronized void setStatus(int fileid, int chunkid, Status status) {
-		ensureSize(fileid, chunkid);
+	public AcquisitionStatus(AcquisitionStatus copyStatus) {
+		status = new Status[copyStatus.status.length][];
 		
-		this.status[fileid][chunkid] = status;
+		for(int i=0; i<copyStatus.status.length; i++) {
+			status[i] = new Status[copyStatus.status[i].length];
+			
+			for(int j=0; j<status[i].length; j++) {
+				status[i][j] = Status.UNKNOWN;
+			}
+		}
+		
+		handlers = new LinkedList<>();
 	}
+	
+	public synchronized void registerHandler(ChunkStatusChangeHandler handler) {
+		handlers.add(handler);
+	}
+	
+	public void setStatus(int fileid, int chunkid, Status status) {
+		Status old;
+		synchronized(this) {
+			ensureSize(fileid, chunkid);
+			
+			old = this.status[fileid][chunkid];
+			
+			
+			this.status[fileid][chunkid] = status;
+		}
+
+		if(status == Status.COMPLETE && old != Status.UNKNOWN) {
+			chunkComplete(fileid, chunkid);
+		}
+	}
+	private synchronized void chunkComplete(int fileid, int chunkid) {
+		for(ChunkStatusChangeHandler handler : handlers) {
+			
+			handler.onChunkComplete(fileid, chunkid);
+		}
+	}
+
 	private void ensureSize(int fileid, int chunkid) {
 		
 		if(this.status[fileid] == null || this.status[fileid].length <= chunkid) {
@@ -65,8 +104,11 @@ public class AcquisitionStatus {
 	
 	public synchronized boolean complete() {
 		for(Status[] chunkStatuses : status) {
-			for(Status status : chunkStatuses) {
-				if(!status.equals(Status.COMPLETE)) {
+			if(chunkStatuses == null) {
+				return false;
+			}
+			for(Status stat : chunkStatuses) {
+				if(stat == null || (!status.equals(Status.COMPLETE))) {
 					return false;
 				}
 			}

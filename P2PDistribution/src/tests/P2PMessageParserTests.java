@@ -9,7 +9,10 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -95,9 +98,9 @@ public class P2PMessageParserTests {
 	    assertEquals("advertise_chunks", msg.payload.cmd);
 	    
 	    assertTrue(msg.payload instanceof AdvertiseJSONMessage);
-	    HashMap<Integer, Integer> chunks = new HashMap<>();
-	    chunks.put(4, 0);
-	    chunks.put(0, 2);
+	    List<List<Integer>> chunks = new LinkedList<>();
+	    chunks.add(Arrays.asList(new Integer[] {4, 0}));
+	    chunks.add(Arrays.asList(new Integer[] {0, 2}));
 	    assertEquals(chunks, ((AdvertiseJSONMessage)msg.payload).chunksComplete);
 	}
 	

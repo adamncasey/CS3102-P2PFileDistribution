@@ -82,7 +82,7 @@ public class P2PFile {
 	 * @throws IOException
 	 */
 	public byte[] readChunkData(int chunkid) throws IOException {
-		if(chunkid < chunks.length) {
+		if(chunkid >= chunks.length) {
 			
 			throw new IOException("Cannot read invalid chunkid.");
 		}

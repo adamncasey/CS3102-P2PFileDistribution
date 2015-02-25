@@ -79,8 +79,6 @@ public class P2PMessageParser {
 		String cmd = (String)obj.get("cmd");
 		String metaHash = (String)obj.get("meta_hash");
 		
-		System.out.println("readControlMessage: " + new String(data));
-		
 		JSONMessage payload = parseControlJSONMessage(obj, cmd, metaHash);
 		
 		return new ControlMessage(version, MessageType.CONTROL, length, payload);

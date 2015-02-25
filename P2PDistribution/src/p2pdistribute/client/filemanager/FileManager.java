@@ -103,7 +103,7 @@ public class FileManager {
 	}
 	
 	
-	public void setChunkData(int fileid, int chunkid, byte[] data) throws IOException {
+	public synchronized void setChunkData(int fileid, int chunkid, byte[] data) throws IOException {
 		
 		if(fileid >= files.length) {
 			System.err.println("Err wtf");

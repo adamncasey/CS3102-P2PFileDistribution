@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 
+import p2pdistribute.client.filemanager.ChunkStatusChangeHandler;
 import p2pdistribute.client.filemanager.FileManager;
 import p2pdistribute.client.filemanager.FileManagerSetupException;
 import p2pdistribute.common.p2pmeta.FileParser;
@@ -13,7 +14,7 @@ import p2pdistribute.common.p2pmeta.ParserException;
 import p2pdistribute.swarmmanager.SwarmManagerMain;
 
 
-public class ClientMain {
+public class ClientMain implements ChunkStatusChangeHandler {
 	public static final int SM_PORT = SwarmManagerMain.PORT;
 	
 	public static void main(String[] args) throws InterruptedException {
@@ -26,7 +27,8 @@ public class ClientMain {
 		String outputDir = args[1];
 		
 		if(args.length == 3) {
-			if(args[0] == "--seed") {
+			if(args[0].equals("--seed")) {
+				System.out.println("Seed");
 				seed = true;
 			}
 			p2pMetaFile = args[1];
@@ -38,13 +40,14 @@ public class ClientMain {
 			return;
 		}
 		
-		FileManager fileManager = new FileManager(metadata, outputDir);
-		try {
-			fileManager.setup();
-		} catch(FileManagerSetupException e) {
-			System.err.println("Error occured when preparing files: " + e.getMessage());
+		FileManager fileManager = setupFileManager(metadata, outputDir);
+		if(fileManager == null) {
 			return;
 		}
+		
+		double percentage = ((double)fileManager.status.numChunksComplete() / fileManager.numChunks()) * 100;
+		
+		System.out.println("Download status: " + percentage);
 		
 		PeerManager peerManager;
 		try {
@@ -55,7 +58,6 @@ public class ClientMain {
 		}
 		
 		while(!fileManager.complete() || !peerManager.complete() || seed) {
-			//TODO Handle starved swarm?
 			try {
 				peerManager.run(); 
 				
@@ -65,8 +67,6 @@ public class ClientMain {
 			}
 			
 			Thread.sleep(500);
-			
-			//System.out.println("Download Progress: \n\tFinished?:" + fileManager.complete());
 		}
 		
 		peerManager.waitForPeers();
@@ -74,6 +74,21 @@ public class ClientMain {
 		System.out.println("Exiting");
 	}
 	
+	private static FileManager setupFileManager(P2PMetadata metadata, String outputDir) {
+		FileManager fileManager = new FileManager(metadata, outputDir);
+		try {
+			fileManager.setup();
+		} catch(FileManagerSetupException e) {
+			System.err.println("Error occured when preparing files: " + e.getMessage());
+			return null;
+		}
+		
+		// Just used to print message on chunk acquisition
+		fileManager.status.registerHandler(new ClientMain());
+		
+		return fileManager;
+	}
+
 	private static boolean checkArgs(String[] args) {
 		// If releasing this as a product a proper argument parsing library should be used.
 		
@@ -103,5 +118,10 @@ public class ClientMain {
 		}
 		
 		return null;
+	}
+
+	@Override
+	public void onChunkComplete(int fileid, int chunkid) {
+		System.out.println("Acquired chunk: " + fileid + "/" + chunkid);
 	}
 }

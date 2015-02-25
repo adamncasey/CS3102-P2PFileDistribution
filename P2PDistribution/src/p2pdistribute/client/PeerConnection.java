@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import p2pdistribute.client.filemanager.AcquisitionStatus;
+import p2pdistribute.client.filemanager.ChunkStatusChangeHandler;
 import p2pdistribute.client.filemanager.FileManager;
 import p2pdistribute.client.filemanager.Status;
 import p2pdistribute.client.message.AdvertiseJSONMessage;
@@ -18,7 +21,7 @@ import p2pdistribute.client.message.RequestChunkJSONMessage;
 import p2pdistribute.common.Peer;
 import p2pdistribute.common.p2pmeta.ParserException;
 
-public class PeerConnection implements Runnable {
+public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 	
 	public static final int PEER_CONNECT_TIMEOUT = 5000;
 	
@@ -32,10 +35,15 @@ public class PeerConnection implements Runnable {
 	
 	Socket sock;
 	Thread readThread;
+	
+	Thread writeThread;
+	BlockingQueue<byte[]> queue;
 
 	private boolean shouldStop;
+	
+	private boolean requestedChunk;
 
-	public PeerConnection(Socket client, FileManager fileManager) {
+	public PeerConnection(Socket client, FileManager fileManager) throws IOException {
 		sock = client;
 		
 		this.peer = new Peer(client.getInetAddress(), client.getLocalPort());
@@ -54,31 +62,39 @@ public class PeerConnection implements Runnable {
 		initialise(fileManager);
 	}
 	
-	private void initialise(FileManager fileManager) {
+	private void initialise(FileManager fileManager) throws IOException {
 		
 		localFiles = fileManager;
 		currentFileID = currentChunkID = -1;
 		
+		localFiles.status.registerHandler(this);
+		
 		peerStatus = new AcquisitionStatus(localFiles.numFiles());
 		
 		shouldStop = false;
+		requestedChunk = false;
 		
 		// Then create new thread for reading from socket.
 		readThread = new Thread(this);
 		readThread.start();
+		
+		queue = new LinkedBlockingQueue<>();
+		
+		writeThread = new Thread(new PeerConnectionWriteTask(this.queue, sock.getOutputStream()));
+		writeThread.start();
 	}
 
 	@Override
 	public void run() {
 		// Advertise chunks!
-		try {
-			advertiseChunks();
-		} catch (IOException e1) {
-			System.err.println("Error occured when advertising chunks");
-			stop();
-		}
+		advertiseChunks();
 		
 		while(!stopRequested()) {
+			if(!writeThread.isAlive()) {
+				// If write thread has died, there's no point continuing.
+				break;
+			}
+			
 			Message msg;
 			try {
 				msg = P2PMessageParser.readMessage(sock.getInputStream());
@@ -92,12 +108,12 @@ public class PeerConnection implements Runnable {
 			try {
 				handleMessage(msg);
 			} catch(IOException e) {
-				System.out.println("Could not send reply to message");
+				System.out.println("Error occured handling message: " + e.getMessage());
 				break;
 			}
 		}
 		
-		// writeThread.join();
+		stop();
 		
 		try {
 			sock.close();
@@ -106,6 +122,12 @@ public class PeerConnection implements Runnable {
 		}
 		
 		tidyIncompleteChunk();
+		
+		try {
+			writeThread.join();
+		} catch (InterruptedException e) {
+			// Unable to join writeThread...
+		}
 	}
 	
 	private void tidyIncompleteChunk() {
@@ -114,7 +136,7 @@ public class PeerConnection implements Runnable {
 		}
 	}
 
-	private void advertiseChunks() throws IOException {
+	private void advertiseChunks() {
 		// Get all the chunks we have from localFiles
 		int[][] completeChunks = localFiles.status.getCompleteFileChunkIDs();
 		
@@ -124,8 +146,7 @@ public class PeerConnection implements Runnable {
 		byte[] messageBytes = P2PMessageParser.serialiseJSONMessage(payload);
 		
 		// Send
-		System.out.println("Writing chunks to stream: " + new String(messageBytes));
-		sock.getOutputStream().write(messageBytes);
+		queue.add(messageBytes);
 	}
 
 	public synchronized void stop() {
@@ -138,16 +159,29 @@ public class PeerConnection implements Runnable {
 			// Nothing to be done here really.
 		}
 		
-		// TODO tell writer thread to stop on completion.
+		writeThread.interrupt();
 	}
-	
+
 	private synchronized boolean stopRequested() {
 		return shouldStop;
 	}
-	
-	private void handleMessage(Message msg) throws IOException {
-		System.out.println("handleMessage " + msg.type);
+
+	private synchronized boolean requestChunkLock() {
+		if(requestedChunk) {
+			return false;
+		}
 		
+		requestedChunk = true;
+		//System.out.println("locked");
+		return true;
+	}
+
+	private synchronized void requestChunkUnlock() {
+		//System.out.println("unlocked");
+		requestedChunk = false;
+	}
+
+	private void handleMessage(Message msg) throws IOException {
 		if(msg.type == MessageType.CONTROL) {
 			handleControlMessage((ControlMessage)msg);
 			
@@ -160,11 +194,11 @@ public class PeerConnection implements Runnable {
 	
 	private void handleDataMessage(DataMessage msg) throws IOException {
 		localFiles.setChunkData(msg.fileid, msg.chunkid, msg.data);
-		currentFileID = currentChunkID = 0;
+		currentFileID = currentChunkID = -1;
 		
-		// Ask for a new chunk once this is done.
+		requestChunkUnlock();
+
 		requestChunk();
-		
 	}
 
 	private void handleControlMessage(ControlMessage msg) throws IOException {
@@ -177,16 +211,14 @@ public class PeerConnection implements Runnable {
 			
 		} else if(msg.payload.cmd.equals("request_chunk")) {
 			RequestChunkJSONMessage message = (RequestChunkJSONMessage) msg.payload;
-			 // Send chunk... blocking? Why not? Well.. advertising new chunks asynchronously will not for one reason. 
+			 // Send chunk... blocking? Why not? Well.. advertising new chunks asynchronously will not for one reason.
 			System.out.println("Chunk requested: " + message.fileid + "/" + message.chunkid);
 			
-			// TODO Verify fileid / chunkid?
 			byte[] data = localFiles.getChunkData(message.fileid, message.chunkid);
 			
 			byte[] messageData = P2PMessageParser.serialiseData(data, localFiles.metadata.metaHash, message.fileid, message.chunkid);
-			sock.getOutputStream().write(messageData);
+			queue.add(messageData);
 		}
-		
 	}
 
 	private void updatePeerStatus(List<List<Integer>> chunksComplete) {
@@ -206,9 +238,13 @@ public class PeerConnection implements Runnable {
 	}
 
 	private void requestChunk() throws IOException {
+		if(!requestChunkLock()) {
+			System.out.println("We have already asked for a chunk");
+			return;
+		}
+
 		// Choose an interesting chunk and reserve it so we will request a different chunk from a different peer
 		int[] chunk = localFiles.status.pickUsefulChunk(peerStatus);
-		
 		if(chunk == null) {
 			// Peer has no useful chunks for us
 			System.out.println("Peer has no useful chunks for us");
@@ -219,12 +255,13 @@ public class PeerConnection implements Runnable {
 		
 		byte[] messageData = P2PMessageParser.serialiseJSONMessage(payload);
 		
-		sock.getOutputStream().write(messageData);
-		System.out.println("Writing chunks to stream: " + new String(messageData));
+		queue.add(messageData);
 	}
 
-	public void advertiseChunk(int fileid, int chunkid) {
-		// Should send advertise chunk message out to peer
+	@Override
+	public void onChunkComplete(int fileid, int chunkid) {
+		// TODO: Future Task: only send new fileid / chunk id, rather than re-send entire advertise chunks message
+		advertiseChunks();
 	}
 
 }

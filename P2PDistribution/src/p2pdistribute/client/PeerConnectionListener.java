@@ -43,7 +43,14 @@ public class PeerConnectionListener implements Runnable {
 				return;
 			}
 		
-			PeerConnection peer = new PeerConnection(client, fileManager);
+			PeerConnection peer;
+			try {
+				peer = new PeerConnection(client, fileManager);
+			} catch (IOException e) {
+				// Error occurred while adding a new client, just move on to the next one
+				System.out.println("Error occured constructing PeerConnection.");
+				continue;
+			}
 			
 			acManager.addPeer(peer);
 		}
