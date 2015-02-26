@@ -22,7 +22,9 @@ public class P2PMetaGenerator {
 	public static int CHUNK_SIZE = 256*1024;
 
 	public static void main(String[] args) {
-		verifyArgs(args);
+		if(!verifyArgs(args)) {
+			return;
+		}
 		// Pass swarm manager hostname + list of files + output file
 		String smHostname = args[0];
 		String outputFile = args[args.length - 1];
@@ -50,10 +52,12 @@ public class P2PMetaGenerator {
 		System.out.println(outputFile + " created successfully.");
 	}
 	
-	private static void verifyArgs(String[] args) {
+	private static boolean verifyArgs(String[] args) {
 		if(args.length < 3) {
 			System.out.println("Usage: <SwarmManagerHostname> <FileToSend1> ... <FileToSendN> <P2PMetaOutputFile>");
+			return false;
 		}
+		return true;
 	}
 	
 	public static String generateP2PMetaFile(String smHostname, String algorithm, long chunkSize, String[] files) throws NoSuchAlgorithmException, IOException {

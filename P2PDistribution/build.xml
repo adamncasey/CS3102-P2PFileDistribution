@@ -18,7 +18,7 @@
 			<exclude name="**/Example.java" />
 		</javac>
 	</target>
-    <target name="jar" depends="compile">
+    <target name="jar">
         <jar destfile="peer.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="p2pdistribute.client.ClientMain"/>
