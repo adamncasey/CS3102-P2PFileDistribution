@@ -73,15 +73,14 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		
 		shouldStop = false;
 		requestedChunk = false;
+
+		queue = new LinkedBlockingQueue<>();
+		writeThread = new Thread(new PeerConnectionWriteTask(this.queue, sock.getOutputStream()));
+		writeThread.start();
 		
 		// Then create new thread for reading from socket.
 		readThread = new Thread(this);
 		readThread.start();
-		
-		queue = new LinkedBlockingQueue<>();
-		
-		writeThread = new Thread(new PeerConnectionWriteTask(this.queue, sock.getOutputStream()));
-		writeThread.start();
 	}
 
 	@Override
