@@ -12,7 +12,6 @@ public class SwarmManagerMain {
 	public static final int PORT = 8889; // TODO Future Task: Settings file. Or store SM Port in .p2pmeta file
 	
 	public static void main(String[] args) {
-		
 		ServerSocket server;
 		
 		try {
