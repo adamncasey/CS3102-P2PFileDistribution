@@ -108,7 +108,7 @@ public class AcquisitionStatus {
 				return false;
 			}
 			for(Status stat : chunkStatuses) {
-				if(stat == null || (!status.equals(Status.COMPLETE))) {
+				if(stat == null || (!stat.equals(Status.COMPLETE))) {
 					return false;
 				}
 			}

@@ -52,8 +52,6 @@ public class ActiveConnectionManager {
 		
 		for(PeerConnection conn : connections) {
 			conn.stop();
-			
-			// TODO join thread conn. conn is not a thread right now - needs to change
 		}
 	}
 	
