@@ -69,7 +69,7 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		
 		localFiles.status.registerHandler(this);
 		
-		peerStatus = new AcquisitionStatus(localFiles.numFiles());
+		peerStatus = new AcquisitionStatus(localFiles.status);
 		
 		shouldStop = false;
 		requestedChunk = false;
