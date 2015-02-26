@@ -103,7 +103,7 @@ public class FileManager {
 	}
 	
 	
-	public synchronized void setChunkData(int fileid, int chunkid, byte[] data) throws IOException {
+	public synchronized boolean setChunkData(int fileid, int chunkid, byte[] data) throws IOException {
 		
 		if(fileid >= files.length) {
 			System.err.println("Err wtf");
@@ -112,7 +112,13 @@ public class FileManager {
 		
 		Status status = files[fileid].writeChunkData(chunkid, data);
 		
+		if(status != Status.COMPLETE) {
+			return false;
+		}
+		
 		this.status.setStatus(fileid, chunkid, status);
+		
+		return true;
 	}
 	
 	public boolean complete() {

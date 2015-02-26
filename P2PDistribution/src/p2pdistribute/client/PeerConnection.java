@@ -192,12 +192,18 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 	}
 	
 	private void handleDataMessage(DataMessage msg) throws IOException {
-		localFiles.setChunkData(msg.fileid, msg.chunkid, msg.data);
-		currentFileID = currentChunkID = -1;
+		boolean result = localFiles.setChunkData(msg.fileid, msg.chunkid, msg.data);
 		
-		requestChunkUnlock();
-
-		requestChunk();
+		
+		if(!result) {
+			stop();
+			// Received invalid chunk data.. Lets disconnect and try again.
+			System.err.println("Chunk data did not match expected checksum: " + msg.fileid + "/" + msg.chunkid);
+		} else {
+			currentFileID = currentChunkID = -1;
+			requestChunkUnlock();
+			requestChunk();
+		}
 	}
 
 	private void handleControlMessage(ControlMessage msg) throws IOException {
