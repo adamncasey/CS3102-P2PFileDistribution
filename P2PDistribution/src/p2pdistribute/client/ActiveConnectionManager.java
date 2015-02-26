@@ -56,4 +56,16 @@ public class ActiveConnectionManager {
 			// TODO join thread conn. conn is not a thread right now - needs to change
 		}
 	}
+	
+	public boolean complete() {
+
+		for(PeerConnection conn : connections) {
+			if(!conn.peerComplete()) {
+				return false;
+			}
+		}
+		
+		
+		return true;
+	}
 }

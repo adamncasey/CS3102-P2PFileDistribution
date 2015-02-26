@@ -132,10 +132,7 @@ public class PeerManager {
 	}
 
 	public boolean complete() {
-		// Peers disconnect when both sides are complete.
-		
-		// Swarm likely to be complete if we have no peers
-		return connManager.getNumPeers() == 0;
+		return connManager.complete();
 	}
 
 }

@@ -239,7 +239,7 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 
 	private void requestChunk() throws IOException {
 		if(!requestChunkLock()) {
-			System.out.println("We have already asked for a chunk");
+			// We are already in the process of receiving a chunk, don't ask for another one yet.
 			return;
 		}
 
@@ -262,6 +262,10 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 	public void onChunkComplete(int fileid, int chunkid) {
 		// TODO: Future Task: only send new fileid / chunk id, rather than re-send entire advertise chunks message
 		advertiseChunks();
+	}
+	
+	public boolean peerComplete() {
+		return peerStatus.complete();
 	}
 
 }

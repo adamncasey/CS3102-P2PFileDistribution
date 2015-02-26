@@ -47,7 +47,7 @@ public class ClientMain implements ChunkStatusChangeHandler {
 		
 		double percentage = ((double)fileManager.status.numChunksComplete() / fileManager.numChunks()) * 100;
 		
-		System.out.println("Download status: " + percentage);
+		System.out.println("Download status: " + percentage + "%");
 		
 		PeerManager peerManager;
 		try {
@@ -57,7 +57,8 @@ public class ClientMain implements ChunkStatusChangeHandler {
 			return;
 		}
 		
-		while(!fileManager.complete() || !peerManager.complete() || seed) {
+		
+		while((!fileManager.complete()) || (!peerManager.complete()) || seed) {
 			try {
 				peerManager.run(); 
 				
