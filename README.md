@@ -26,7 +26,7 @@ Using the supplied .jar file:
 
 For example:
 
-`java -jar metagen.jar 138.251.204.35 Files/TheFastandtheFuriousJohnIreland1954goofyrip_512kb.mp4 Files/cawiki-20140129-stub-articles.xml 700mbtest.p2pmeta`
+``java -jar metagen.jar `hostname` Files/TheFastandtheFuriousJohnIreland1954goofyrip_512kb.mp4 Files/cawiki-20140129-stub-articles.xml 700mbtest.p2pmeta``
 
 Starting a peer
 ---------------
