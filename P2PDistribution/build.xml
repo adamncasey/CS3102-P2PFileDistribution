@@ -2,9 +2,19 @@
 <project default="jar" name="Build and create Runnable Jar for Project P2PDistribute">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
+	
+	<path id="3rd-party-classpath">
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<pathelement path="${build}" />
+	</path>
+	
 	<target name="compile">
 		<javac sourcepath="" srcdir="src" destdir="bin" >
-			<include name="**/*.java"/>
+			<classpath refid="3rd-party-classpath" />
+			<include name="**test/*.java"/>
 			<exclude name="**/Example.java"/>
 		</javac>
 	</target>
