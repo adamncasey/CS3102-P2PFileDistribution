@@ -33,7 +33,7 @@ public class ClientMain implements ChunkStatusChangeHandler {
 			return;
 		}
 		
-		FileManager fileManager = setupFileManager(metadata, outputDir);
+		fileManager = setupFileManager(metadata, outputDir);
 		if(fileManager == null) {
 			return;
 		}
