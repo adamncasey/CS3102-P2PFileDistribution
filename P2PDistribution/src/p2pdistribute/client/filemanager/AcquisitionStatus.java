@@ -154,7 +154,6 @@ public class AcquisitionStatus {
 			for(int j=0; j<ourRow.length; j++) {
 				if(theirRow[j] == Status.COMPLETE) {
 					if(ourRow[j] != Status.COMPLETE && ourRow[j] != Status.INPROGRESS) {
-						ourRow[j] = Status.INPROGRESS;
 						chunks.add(new int[] { i, j });
 					}
 				}
@@ -166,8 +165,10 @@ public class AcquisitionStatus {
 		}
 		
 		int index = random.nextInt(chunks.size());
+		int[] chunk = chunks.get(index);
 		
-		return chunks.get(index);
+		status[chunk[0]][chunk[1]] = Status.INPROGRESS;
+		return chunk;
 	}
 	
 	public synchronized int[][] getCompleteFileChunkIDs() {
