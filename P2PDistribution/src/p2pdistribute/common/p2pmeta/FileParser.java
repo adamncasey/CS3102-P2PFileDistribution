@@ -9,6 +9,12 @@ import p2pdistribute.common.message.MessageParserUtils;
 import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
 
 public class FileParser {
+	/**
+	 * Attempts to parse the string as a .p2pmeta file
+	 * @param contents - The file contents to parse
+	 * @return A P2PMetadata object on success
+	 * @throws ParserException thrown on Parse Error
+	 */
 	public static P2PMetadata parseP2PMetaFileContents(String contents) throws ParserException {
 		JSONObject obj = MessageParserUtils.parseJSON(contents);
 		
@@ -49,6 +55,10 @@ public class FileParser {
 		return file;
 	}
 	
+	/**
+	 * Parses a File object usually contained within a P2PMetadata object in the JSON file.
+	 * @note exposed mainly for testing
+	 */
 	public static FileMetadata parseFileMetadata(JSONObject file) throws ParserException {
 		MessageParserUtils.validateFieldType(file, "name", String.class);
 		MessageParserUtils.validateFieldType(file, "hash", String.class);

@@ -3,7 +3,13 @@ package p2pdistribute.common.message;
 import java.util.HashMap;
 import java.util.Map;
 
+import p2pdistribute.client.message.ControlMessage;
 
+/**
+ * Used to represent a JSONMessage.
+ * Both {@link SwarmManagerMessage} and P2P {@link ControlMessage} utilise this
+ *
+ */
 public class JSONMessage {
 	public final String cmd;
 	public final String metaHash;

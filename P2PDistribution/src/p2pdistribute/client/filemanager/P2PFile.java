@@ -8,6 +8,12 @@ import java.nio.file.Path;
 import p2pdistribute.common.p2pmeta.FileMetadata;
 import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
 
+/**
+ * Handles all file IO for a particular file.
+ * 		- Will work out which chunks are contained within the file
+ * 		- Use to read/write chunks to the file.
+ *
+ */
 public class P2PFile {
 	public final FileMetadata meta;
 	public final long fileSize;
@@ -35,7 +41,6 @@ public class P2PFile {
 	 * 
 	 * If some chunks are already owned, this will be reflected in the return value
 	 * 
-	 * @return
 	 * @throws P2PFilePreparationException - Unable to create/expand/read to files
 	 */
 	public Status[] prepare() throws P2PFilePreparationException {
@@ -47,7 +52,6 @@ public class P2PFile {
 	
 	/**
 	 * Returns the number of chunks this file is made up of
-	 * @return
 	 */
 	public int getTotalChunks() {
 		return meta.chunks.length;
@@ -57,8 +61,8 @@ public class P2PFile {
 	 * Writes the chunk data to the file, and returns the Status of the chunk after writing the data
 	 * @param chunkid - Chunk ID to write data to
 	 * @param data - The data to write into Chunk ID.
-	 * @return
-	 * @throws IOException
+	 * @return The status of the chunk after writing the data. Should be COMPLETE unless data was not valid.
+	 * @throws IOException thrown on IO error writing to file.
 	 */
 	public Status writeChunkData(int chunkid, byte[] data) throws IOException {
 		assert chunkid < chunks.length;
@@ -79,7 +83,7 @@ public class P2PFile {
 	 * Reads chunk data from disk
 	 * @param chunkid
 	 * @return
-	 * @throws IOException
+	 * @throws IOException thrown on IO error reading from file.
 	 */
 	public byte[] readChunkData(int chunkid) throws IOException {
 		if(chunkid >= chunks.length) {

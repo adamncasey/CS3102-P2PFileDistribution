@@ -9,6 +9,10 @@ import org.apache.commons.codec.binary.Hex;
 
 import p2pdistribute.common.message.JSONMessage;
 
+/**
+ * Represents an "advertise_chunks" P2P JSON message
+ *
+ */
 public class AdvertiseJSONMessage extends JSONMessage {
 	
 	// Map<FileID, ChunkID>.

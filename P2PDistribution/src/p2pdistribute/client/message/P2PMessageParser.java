@@ -16,7 +16,19 @@ import p2pdistribute.common.message.MessageParserUtils;
 import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.p2pmeta.ParserException;
 
+/**
+ * Parses all messages for P2P connections
+ *
+ */
 public class P2PMessageParser {
+	
+	/**
+	 * Reads a message from the given InputStream, returning the parsed Message or throwing an Exception
+	 * @param stream
+	 * @return Message on success
+	 * @throws ParserException - Invalid data read off socket
+	 * @throws IOException - Socket error occurred
+	 */
 	public static Message readMessage(InputStream stream) throws ParserException, IOException {
 		
 		byte[] header = readBytes(stream, 4);
@@ -45,6 +57,63 @@ public class P2PMessageParser {
 		default:
 			throw new ParserException("Unsupported Message type: " + typeValue);
 		}
+	}
+
+	/**
+	 * Serialises a JSON Payload into a Message suitable for sending
+	 * @param payload
+	 * @return Message encoded and stored in a byte array
+	 */
+	public static byte[] serialiseJSONMessage(JSONMessage payload) {
+		byte[] json = MessageParserUtils.serialiseMessageAsJSON(payload).getBytes();
+		
+		int length = json.length;
+		
+		// Bounds check (< 2^24 max message data length)
+		if(length > 16777215) {
+			// Invalid length. Message will be clipped
+			length = 16777216;
+		}
+		
+		ByteBuffer buffer = ByteBuffer.allocate(4 + length).order(ByteOrder.BIG_ENDIAN);
+		buffer.putInt(length);
+		
+		buffer.put(json, 0, length);
+		
+		byte[] data = buffer.array();
+		data[0] = 0; // Set version and MessageType to zero.
+		
+		return data;
+	}
+
+	/**
+	 * 
+	 * Serialises a Data message into a byte array which can be sent over the network
+	 * @param data - The data to send
+	 * @param metaHash - The metahash this data relates to
+	 * @param fileid - The file ID the data relates to
+	 * @param chunkid - The chunk ID of the data
+	 * @return byte array containing the encoded message
+	 */
+	public static byte[] serialiseData(byte[] data, byte[] metaHash, int fileid, int chunkid) {
+		
+		int length = 1 + metaHash.length + 4 + 4 + data.length; 
+		
+		ByteBuffer dataBuffer = ByteBuffer.allocate(4 + length).order(ByteOrder.BIG_ENDIAN);
+		dataBuffer.putInt(length);
+
+		dataBuffer.put((byte)metaHash.length);
+		dataBuffer.put(metaHash);
+		dataBuffer.putInt(fileid);
+		dataBuffer.putInt(chunkid);
+		dataBuffer.put(data);
+		
+		byte[] serialised = dataBuffer.array();
+		
+		// Set first two bytes to 0x01 (version zero, MessageType 1)
+		serialised[0] = 0x01;
+		
+		return serialised;
 	}
 	
 	private static DataMessage readDataMessage(InputStream stream, byte version, int length) throws IOException {
@@ -169,48 +238,5 @@ public class P2PMessageParser {
 		// Used to avoid any issues with java's signed byte.
 		byte[] bytes = new byte[] { 0x00, value };
 		return ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN).getShort();
-	}
-
-	public static byte[] serialiseJSONMessage(JSONMessage payload) {
-		byte[] json = MessageParserUtils.serialiseMessageAsJSON(payload).getBytes();
-		
-		int length = json.length;
-		
-		// Bounds check (< 2^24)
-		if(length > 16777215) {
-			// Invalid length. Message will be clipped
-			length = 16777216;
-		}
-		
-		ByteBuffer buffer = ByteBuffer.allocate(4 + json.length).order(ByteOrder.BIG_ENDIAN);
-		buffer.putInt(json.length);
-		
-		buffer.put(json);
-		
-		byte[] data = buffer.array();
-		data[0] = 0; // Set version and MessageType to zero.
-		
-		return data;
-	}
-
-	public static byte[] serialiseData(byte[] data, byte[] metaHash, int fileid, int chunkid) {
-		
-		int length = 1 + metaHash.length + 4 + 4 + data.length; 
-		
-		ByteBuffer dataBuffer = ByteBuffer.allocate(4 + length).order(ByteOrder.BIG_ENDIAN);
-		dataBuffer.putInt(length);
-
-		dataBuffer.put((byte)metaHash.length);
-		dataBuffer.put(metaHash);
-		dataBuffer.putInt(fileid);
-		dataBuffer.putInt(chunkid);
-		dataBuffer.put(data);
-		
-		byte[] serialised = dataBuffer.array();
-		
-		// Set first two bytes to 0x01 (version zero, MessageType 1)
-		serialised[0] = 0x01;
-		
-		return serialised;
 	}
 }

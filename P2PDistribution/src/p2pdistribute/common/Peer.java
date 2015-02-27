@@ -2,6 +2,10 @@ package p2pdistribute.common;
 
 import java.net.InetAddress;
 
+/**
+ * Represents a Peer as stored/retrieved from the Swarm Manager.
+ * Peers are uniquely identified by (IP Address, Listening Port)
+ */
 public class Peer {
 	public final InetAddress address;
 	public final int port;

@@ -6,6 +6,10 @@ import java.net.Socket;
 
 import p2pdistribute.client.filemanager.FileManager;
 
+/**
+ * Handles listening for new Peer connections
+ * Will accept new TCP clients, then pass the socket off to a the ActiveConnectionManager for further processing.
+ */
 public class PeerConnectionListener implements Runnable {
 
 	private ServerSocket server;
@@ -16,14 +20,14 @@ public class PeerConnectionListener implements Runnable {
 		server = new ServerSocket(0);
 		acManager = connManager;
 		this.fileManager = fileManager;
-		System.out.println("Listening: " + server.getInetAddress().toString() + ":" + server.getLocalPort());
+		System.out.println("Listening for peers at: " + server.getInetAddress().toString() + ":" + server.getLocalPort());
 	}
 	
 	public void stop() {
 		try {
 			server.close();
 		} catch(IOException e) {
-			// Unhandled exception
+			// Error when closing ServerSocket. Minimal importance.
 		}
 	}
 	
@@ -31,6 +35,10 @@ public class PeerConnectionListener implements Runnable {
 		return server.getLocalPort();
 	}
 	
+	/**
+	 * Begins the loop of accept()'ing new peers
+	 * Will exit when the ServerSocket is closed - use {@link #stop()}
+	 */
 	@Override
 	public void run() {
 		while(!server.isClosed()) {

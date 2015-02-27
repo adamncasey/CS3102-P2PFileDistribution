@@ -4,7 +4,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-
+/**
+ * Wrapper for MessageDigest to allow for abstracting the actual MessageDigest 
+ * 		algorithm and usage further down in the program
+ *
+ */
 public class HashAlgorithm {
 	private MessageDigest digestFunction;
 	

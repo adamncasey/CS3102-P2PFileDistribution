@@ -4,8 +4,7 @@
 package p2pdistribute.client.message;
 
 /**
- * @author Adam
- *
+ * Stores all properties of a P2P Data Message
  */
 public class DataMessage extends Message {
 	

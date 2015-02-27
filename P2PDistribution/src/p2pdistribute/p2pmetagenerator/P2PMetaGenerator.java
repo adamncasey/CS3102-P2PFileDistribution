@@ -20,15 +20,16 @@ public class P2PMetaGenerator {
 
 	public static String HASH_TYPE = "sha-256";
 	public static int CHUNK_SIZE = 256*1024;
+	
+	private static String smHostname;
+	private static String outputFile;
+	private static int numInputFiles;
 
 	public static void main(String[] args) {
 		if(!verifyArgs(args)) {
 			return;
 		}
 		// Pass swarm manager hostname + list of files + output file
-		String smHostname = args[0];
-		String outputFile = args[args.length - 1];
-		int numInputFiles = args.length - 2;
 		
 		String[] files = new String[numInputFiles];
 
@@ -57,10 +58,13 @@ public class P2PMetaGenerator {
 			System.out.println("Usage: <SwarmManagerHostname> <FileToSend1> ... <FileToSendN> <P2PMetaOutputFile>");
 			return false;
 		}
+		smHostname = args[0];
+		outputFile = args[args.length - 1];
+		numInputFiles = args.length - 2;
 		return true;
 	}
 	
-	public static String generateP2PMetaFile(String smHostname, String algorithm, long chunkSize, String[] files) throws NoSuchAlgorithmException, IOException {
+	private static String generateP2PMetaFile(String smHostname, String algorithm, long chunkSize, String[] files) throws NoSuchAlgorithmException, IOException {
 		Map<String, Object> map = new LinkedHashMap<>();
 		
 		map.put("hash_type", algorithm);

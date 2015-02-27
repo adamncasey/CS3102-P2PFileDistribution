@@ -11,7 +11,7 @@ import p2pdistribute.common.p2pmeta.P2PMetadata;
 
 /**
  * Tracks and handles the progress of file data / chunk acquiring
- *
+ * Can be safely accessed across threads.
  */
 public class FileManager {
 	
@@ -32,13 +32,69 @@ public class FileManager {
 		status = new AcquisitionStatus(this.numFiles());
 	}
 	
-
+	/**
+	 * Attempts to check files expected from the Metadata for validity.
+	 * If the files do not exist, they will be allocated when this function is called.
+	 * @throws FileManagerSetupException thrown if there is an error creating/reading directories or files.
+	 */
 	public void setup() throws FileManagerSetupException {
 
 		prepareDirectory();
 		
 		HashAlgorithm hashFunc = makeHashAlgorithm(metadata.hashType);
 		prepareFiles(hashFunc);
+	}
+	
+	/**
+	 * Sets the data of a particular chunk in the specified file. 
+	 * Checks the validity of this data and returns the new Status of this chunk.
+	 * @param fileid
+	 * @param chunkid
+	 * @param data
+	 * @return
+	 * @throws IOException
+	 */
+	public synchronized boolean setChunkData(int fileid, int chunkid, byte[] data) throws IOException {
+		
+		if(fileid >= files.length) {
+			System.err.println("Err wtf");
+			throw new IOException("Invalid FileID: " + fileid + ". Num files: " + files.length);
+		}
+		
+		if(status.getStatus(fileid, chunkid) == Status.COMPLETE) {
+			// Chunk is already complete, this message is weird. Malcious?
+			System.out.println("Attempt to overwrite complete chunk");
+			return false;
+		}
+		
+		Status status = files[fileid].writeChunkData(chunkid, data);
+		
+		if(status != Status.COMPLETE) {
+			return false;
+		}
+		
+		this.status.setStatus(fileid, chunkid, status);
+		
+		return true;
+	}
+	
+	public boolean complete() {
+		return status.complete();
+	}
+	
+	public int numFiles() {
+		return metadata.files.length;
+	}
+	
+	public int numChunks() {
+		int total = 0;
+		
+		for(FileMetadata file : metadata.files) {
+			
+			total += file.chunks.length;
+		}
+		
+		return total;
 	}
 
 	private void prepareDirectory() throws FileManagerSetupException {
@@ -100,43 +156,5 @@ public class FileManager {
 		}
 		
 		return files[fileid].readChunkData(chunkid);
-	}
-	
-	
-	public synchronized boolean setChunkData(int fileid, int chunkid, byte[] data) throws IOException {
-		
-		if(fileid >= files.length) {
-			System.err.println("Err wtf");
-			throw new IOException("Invalid FileID: " + fileid + ". Num files: " + files.length);
-		}
-		
-		Status status = files[fileid].writeChunkData(chunkid, data);
-		
-		if(status != Status.COMPLETE) {
-			return false;
-		}
-		
-		this.status.setStatus(fileid, chunkid, status);
-		
-		return true;
-	}
-	
-	public boolean complete() {
-		return status.complete();
-	}
-	
-	public int numFiles() {
-		return metadata.files.length;
-	}
-	
-	public int numChunks() {
-		int total = 0;
-		
-		for(FileMetadata file : metadata.files) {
-			
-			total += file.chunks.length;
-		}
-		
-		return total;
 	}
 }

@@ -7,6 +7,10 @@ import java.util.Map;
 
 import p2pdistribute.common.Peer;
 
+/**
+ * Represents the data held in a SwarmManagerMessage.
+ *
+ */
 public class SwarmManagerMessage extends JSONMessage {
 	
 	private final Integer port;
@@ -58,6 +62,10 @@ public class SwarmManagerMessage extends JSONMessage {
 		return map;
 	}
 	
+	/**
+	 * Exclusively if the message is a "peers" message, this function will retrieve the list of Peers.
+	 * Throws RuntimeException if this call is made invalidly.
+	 */
 	public Peer[] getPeers() {
 		if(peers == null) {
 			throw new RuntimeException("getPeers called on an invalid message");	
@@ -65,6 +73,11 @@ public class SwarmManagerMessage extends JSONMessage {
 		
 		return peers;
 	}
+	
+	/**
+	 * Exclusively if the message is a "register" message, this function will retrieve the listen port.
+	 * Throws RuntimeException if this call is made invalidly.
+	 */
 	public int getPort() {
 		if(port == null) {
 			throw new RuntimeException("getPort called on an invalid message");	

@@ -29,6 +29,13 @@ public class SwarmManagerMain {
 		System.out.println("Closed TCP listen socket");
 	}
 	
+	/**
+	 * Main SM Server Loop:
+	 * 		1. Accept client
+	 * 		2. Start Client Handling Thread
+	 * 		repeat until server socket closed.
+	 * @param ServerSocket
+	 */
 	private static void serverLoop(ServerSocket server) {
 		LinkedList<Thread> listenThreads = new LinkedList<>();
 		// Keeps track of peers in swarms (One entry per active p2pmeta)
@@ -58,6 +65,9 @@ public class SwarmManagerMain {
 		stopThreads(listenThreads);
 	}
 	
+	/**
+	 * If a client handling thread has completed, remove it from the list of threads
+	 */
 	private static void pruneThreads(LinkedList<Thread> listenThreads) {
 		Iterator<Thread> i = listenThreads.iterator();
 		while (i.hasNext()) {
@@ -89,6 +99,10 @@ public class SwarmManagerMain {
 		return clientThread;
 	}
 
+	/**
+	 * Interrupts and stops all threads.
+	 * @param threads
+	 */
 	private static void stopThreads(LinkedList<Thread> threads) {
 		for(Thread thread : threads) {
 			thread.interrupt();

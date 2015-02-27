@@ -21,17 +21,24 @@ import p2pdistribute.client.message.RequestChunkJSONMessage;
 import p2pdistribute.common.Peer;
 import p2pdistribute.common.p2pmeta.ParserException;
 
+/**
+ * Handles all communication between peers.
+ * 
+ * 	- Sends and receives advertise_chunks messages
+ * 		- Opposing peer's fileStatus is stored in {@link #peerStatus}
+ *  - Sends and receives request_chunk messages
+ *  	- Sending data if we receive the message, and passing the data to the {@link #localFiles} if we receive the data.
+ *
+ */
 public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 	
+	// Low-ish timeout used to quickly disconnect when a problem occurs. This prevents blocking progress.
 	public static final int PEER_SOCKET_TIMEOUT = 5000;
 	
 	public final Peer peer;
 	private AcquisitionStatus peerStatus;
 	
 	private FileManager localFiles;
-	
-	private int currentFileID;
-	private int currentChunkID;
 	
 	Socket sock;
 	Thread readThread;
@@ -41,14 +48,21 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 
 	private boolean shouldStop;
 	
+	/**
+	 * requestedChunk, currentFileID, currentChunkID used to ensure we only request 
+	 * one chunk at a time from the remote peer.
+	 * 
+	 * requestedChunk should only be accessed using requestChunkLock and requestChunkUnlock.
+	 * TODO Future Task: Encapsulating this functionality in a different class would reduce the scope for errors.
+	 */
 	private boolean requestedChunk;
+	private int currentFileID;
+	private int currentChunkID;
 
 	public PeerConnection(Socket client, FileManager fileManager) throws IOException {
 		sock = client;
 		
 		this.peer = new Peer(client.getInetAddress(), client.getLocalPort());
-		
-		// receive register message?
 		
 		initialise(fileManager);
 	}
@@ -65,14 +79,16 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 	private void initialise(FileManager fileManager) throws IOException {
 		
 		localFiles = fileManager;
+
+		requestedChunk = false;
 		currentFileID = currentChunkID = -1;
 		
+		// Register a file status change handler so we can advertise new chunks to this remote peer.
 		localFiles.status.registerHandler(this);
 		
 		peerStatus = new AcquisitionStatus(localFiles.status);
 		
 		shouldStop = false;
-		requestedChunk = false;
 		
 		sock.setSoTimeout(PEER_SOCKET_TIMEOUT);
 
@@ -85,6 +101,15 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		readThread.start();
 	}
 
+	/**
+	 * The main loop for Peer communication
+	 * 
+	 * Behaviour:
+	 * 	1. On connection, peers will exchange advertise_chunks messages.
+	 *  
+	 *  Then, until this thread is stopped or an error occures:
+	 *  	2. processSocketMessage (read and dispatch 1 message from the socket).
+	 */
 	@Override
 	public void run() {
 		// Advertise chunks!
@@ -105,6 +130,8 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 			System.err.println("IOException on peer socket close");
 		}
 		
+		// Make sure that if we had been assigned a chunk to download from this peer
+		// It gets set back to INCOMPLETE (rather than INPROGRESS).
 		tidyIncompleteChunk();
 		
 		try {
@@ -114,6 +141,37 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		}
 	}
 	
+	/**
+	 * Use to stop this Peer thread
+	 */
+	public synchronized void stop() {
+		this.shouldStop = true;
+		
+		try {
+			this.sock.shutdownInput();
+		} catch (IOException e) {
+			// Means there is data in the buffer but the connection has terminated.
+			// Nothing to be done here really.
+		}
+		
+		writeThread.interrupt();
+	}
+
+	@Override
+	public void onChunkComplete(int fileid, int chunkid) {
+		// TODO Future Task: only send new fileid / chunk id, rather than re-send entire advertise chunks message (save bandwidth)
+		advertiseChunks();
+	}
+	
+	/**
+	 * Check whether the remote peer has is at 100% download status.
+	 * @return true if the remote peer has completed downloading
+	 * @return false if the remote peer has not completed downloading
+	 */
+	public boolean peerComplete() {
+		return peerStatus.complete();
+	}
+	
 	private boolean processSocketMessage() {
 		if(!writeThread.isAlive()) {
 			// If write thread has died, there's no point continuing.
@@ -121,7 +179,6 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		}
 		
 		if(transferComplete()) {
-			System.out.println("Peer " + peer.toString() + " transfer completed. Disconnecting.");
 			return false;
 		}
 		
@@ -129,10 +186,9 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		try {
 			msg = P2PMessageParser.readMessage(sock.getInputStream());
 		} catch (IOException e) {
-			System.out.println("Error getting input stream from peer socket: " + e.getMessage());
 			return false;
 		} catch (ParserException e) {
-			System.out.println("Peer sent malformed message. Probably not recoverable...");
+			System.out.println("Peer sent malformed message. Disconnecting");
 			return false;
 		}
 		
@@ -174,19 +230,6 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		queue.add(messageBytes);
 	}
 
-	public synchronized void stop() {
-		this.shouldStop = true;
-		
-		try {
-			this.sock.shutdownInput();
-		} catch (IOException e) {
-			// Means there is data in the buffer but the connection has terminated.
-			// Nothing to be done here really.
-		}
-		
-		writeThread.interrupt();
-	}
-
 	private synchronized boolean stopRequested() {
 		return shouldStop;
 	}
@@ -197,12 +240,10 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		}
 		
 		requestedChunk = true;
-		//System.out.println("locked");
 		return true;
 	}
 
 	private synchronized void requestChunkUnlock() {
-		//System.out.println("unlocked");
 		requestedChunk = false;
 	}
 
@@ -224,7 +265,7 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		if(!result) {
 			stop();
 			// Received invalid chunk data.. Lets disconnect and try again.
-			System.out.println("Chunk data did not match expected checksum: " + msg.fileid + "/" + msg.chunkid);
+			System.err.println("Chunk data did not match expected checksum: " + msg.fileid + "/" + msg.chunkid);
 		} else {
 			currentFileID = currentChunkID = -1;
 			requestChunkUnlock();
@@ -242,7 +283,6 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 			
 		} else if(msg.payload.cmd.equals("request_chunk")) {
 			RequestChunkJSONMessage message = (RequestChunkJSONMessage) msg.payload;
-			System.out.println("Chunk requested: " + message.fileid + "/" + message.chunkid);
 			
 			byte[] data = localFiles.getChunkData(message.fileid, message.chunkid);
 			
@@ -255,7 +295,7 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 	private void updatePeerStatus(List<List<Integer>> chunksComplete) {
 		for(List<Integer> value : chunksComplete) {
 			if(value.size() < 2) {
-				System.out.println("Received badly formed message from peer");
+				System.err.println("Received badly formed message from peer");
 				return;
 			}
 			peerStatus.setStatus(value.get(0), value.get(1), Status.COMPLETE);
@@ -283,15 +323,5 @@ public class PeerConnection implements Runnable, ChunkStatusChangeHandler {
 		byte[] messageData = P2PMessageParser.serialiseJSONMessage(payload);
 		
 		queue.add(messageData);
-	}
-
-	@Override
-	public void onChunkComplete(int fileid, int chunkid) {
-		// TODO: Future Task: only send new fileid / chunk id, rather than re-send entire advertise chunks message
-		advertiseChunks();
-	}
-	
-	public boolean peerComplete() {
-		return peerStatus.complete();
 	}
 }

@@ -17,6 +17,10 @@ import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
 
 
+/**
+ * Handles connecting and sending/receiving messages to/from the SwarmManager from within the Peer
+ *
+ */
 public class SwarmManagerConnection {
 
 	public final InetAddress smAddress;
@@ -99,7 +103,7 @@ public class SwarmManagerConnection {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			System.err.println("Cannot close socket. No idea");
+			System.err.println("Error occured closing Swarm Manager Socket.");
 		}
 	}
 }

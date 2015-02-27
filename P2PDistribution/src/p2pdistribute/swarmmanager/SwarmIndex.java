@@ -10,6 +10,11 @@ import java.util.Map;
 
 import p2pdistribute.common.Peer;
 
+/**
+ * Keeps track of all Peers which have registered to this Swarm Manager.
+ * 		Peers stay on the Peer List up to REGISTER_TIMEOUT milliseconds after registering.
+ *
+ */
 public class SwarmIndex  {
 	
 	private static final int REGISTER_TIMEOUT = 10000;

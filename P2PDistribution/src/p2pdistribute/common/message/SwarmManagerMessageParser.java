@@ -9,7 +9,11 @@ import org.json.simple.JSONObject;
 import p2pdistribute.common.Peer;
 import p2pdistribute.common.p2pmeta.ParserException;
 
-
+/**
+ * Handles parsing all Messages sent to/from the Swarm Manager
+ * @author Adam
+ *
+ */
 public class SwarmManagerMessageParser {
 
 	/**
@@ -27,6 +31,12 @@ public class SwarmManagerMessageParser {
 		return obj;
 	}
 	
+	/**
+	 * Attempts to parse a String into a SwarmManagerMessage, throwing a ParserException on failure.
+	 * @param line - The string to parse
+	 * @return SwarmManagerMessge on success
+	 * @throws ParserException thrown on Failure to parrse line.
+	 */
 	public static SwarmManagerMessage parseSwarmManageMessage(String line) throws ParserException {
 		JSONObject obj = validateMessage(line);
 

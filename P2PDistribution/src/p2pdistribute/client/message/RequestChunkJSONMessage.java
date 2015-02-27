@@ -8,6 +8,10 @@ import org.apache.commons.codec.binary.Hex;
 
 import p2pdistribute.common.message.JSONMessage;
 
+/**
+ * Represents a "request_chunk" JSON message
+ *
+ */
 public class RequestChunkJSONMessage extends JSONMessage {
 
 	public final int fileid;

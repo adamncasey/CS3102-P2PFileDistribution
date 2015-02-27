@@ -4,6 +4,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Tracks and maintains the Status of all chunks.
+ * 
+ * @note Can be used across threads.
+ *
+ */
 public class AcquisitionStatus {
 
 	private Status[][] status;
@@ -11,6 +17,11 @@ public class AcquisitionStatus {
 	
 	private Random random; // Used to select a random chunk
 	
+	/**
+	 * Constructor to use if only know how many files there will be
+	 * 
+	 * {@link #setStatus(int, Status[])} Should be used to fill out the chunk statuses for each file.
+	 */
 	public AcquisitionStatus(int numFiles) {
 		status = new Status[numFiles][];
 		
@@ -19,6 +30,13 @@ public class AcquisitionStatus {
 		random = new Random();
 	}
 	
+	/**
+	 * Constructor which will copy the number of files and number of chunks in each file 
+	 * 		from a pre-existing AcquisitionStatus object.
+	 * 
+	 * Will set every initial status to UNKNOWN
+	 * @param copyStatus - The AcquisitionStatus to copy.
+	 */
 	public AcquisitionStatus(AcquisitionStatus copyStatus) {
 		status = new Status[copyStatus.status.length][];
 		
@@ -34,10 +52,30 @@ public class AcquisitionStatus {
 		random = new Random();
 	}
 	
+	/**
+	 * Register a new ChunkStatusChangeHandler
+	 * 
+	 * @note will be notified when a Chunk has been completed.
+	 */
 	public synchronized void registerHandler(ChunkStatusChangeHandler handler) {
 		handlers.add(handler);
 	}
 	
+	public synchronized Status getStatus(int fileid, int chunkid) {
+		// Bounds check
+		if(fileid < 0 || chunkid < 0 || fileid >= status.length || chunkid >= status[fileid].length) {
+			return null;
+		}
+		return this.status[fileid][chunkid];
+	}
+	
+	
+	/**
+	 * Set the status of a particular chunk ID.
+	 * @param fileid
+	 * @param chunkid
+	 * @param status
+	 */
 	public void setStatus(int fileid, int chunkid, Status status) {
 		Status old;
 		synchronized(this) {
@@ -53,47 +91,18 @@ public class AcquisitionStatus {
 			chunkComplete(fileid, chunkid);
 		}
 	}
-	private synchronized void chunkComplete(int fileid, int chunkid) {
-		for(ChunkStatusChangeHandler handler : handlers) {
-			
-			handler.onChunkComplete(fileid, chunkid);
-		}
-	}
-
-	private void ensureSize(int fileid, int chunkid) {
-		
-		if(this.status[fileid] == null || this.status[fileid].length <= chunkid) {
-			Status[] old = this.status[fileid];
-			
-			this.status[fileid] = new Status[chunkid + 1];
-			
-			if(old != null) {
-				int i=0;
-				for(Status stat : old) {
-					this.status[fileid][i++] = stat;
-				}
-			}
-		}
-	}
-
+	/**
+	 * Sets the status for every chunk in a particular File.
+	 * @param fileid
+	 * @param chunkStatuses
+	 */
 	public synchronized void setStatus(int fileid, Status[] chunkStatuses) {
 		this.status[fileid] = chunkStatuses;
 	}
-	
-	public synchronized int numChunksIncomplete() {
-		int total = 0;
-		
-		for(Status[] chunkStatuses : status) {
-			for(Status status : chunkStatuses) {
-				if(status.equals(Status.INCOMPLETE)) {
-					total++;
-				}
-			}
-		}
-		
-		return total;
-	}
 
+	/**
+	 * Returns the total number of chunks that are complete
+	 */
 	public synchronized int numChunksComplete() {
 		int total = 0;
 		
@@ -108,6 +117,9 @@ public class AcquisitionStatus {
 		return total;
 	}
 	
+	/**
+	 * Returns true if every chunk has finished downloading.
+	 */
 	public synchronized boolean complete() {
 		for(Status[] chunkStatuses : status) {
 			if(chunkStatuses == null) {
@@ -174,11 +186,6 @@ public class AcquisitionStatus {
 	public synchronized int[][] getCompleteFileChunkIDs() {
 		return getStatusFileChunkIDs(Status.COMPLETE);
 	}
-	
-	public synchronized int[][] getIncompleteFileChunkIDs() {
-		return getStatusFileChunkIDs(Status.INCOMPLETE);
-	}
-	
 	private int[][] getStatusFileChunkIDs(Status state) {
 		LinkedList<int[]> list = new LinkedList<>();
 		
@@ -191,5 +198,28 @@ public class AcquisitionStatus {
 		}
 		
 		return list.toArray(new int[list.size()][]);
+	}
+	
+	private synchronized void chunkComplete(int fileid, int chunkid) {
+		for(ChunkStatusChangeHandler handler : handlers) {
+			
+			handler.onChunkComplete(fileid, chunkid);
+		}
+	}
+
+	private void ensureSize(int fileid, int chunkid) {
+		
+		if(this.status[fileid] == null || this.status[fileid].length <= chunkid) {
+			Status[] old = this.status[fileid];
+			
+			this.status[fileid] = new Status[chunkid + 1];
+			
+			if(old != null) {
+				int i=0;
+				for(Status stat : old) {
+					this.status[fileid][i++] = stat;
+				}
+			}
+		}
 	}
 }

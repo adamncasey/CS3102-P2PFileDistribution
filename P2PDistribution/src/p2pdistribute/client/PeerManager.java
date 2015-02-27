@@ -9,19 +9,25 @@ import java.util.Random;
 import p2pdistribute.client.filemanager.FileManager;
 import p2pdistribute.common.Peer;
 
-
+/**
+ * Manages P2P connections within Peer
+ * 	- Decides which peers to connect to (Random selection algorithm)
+ *  	- Will not choose to actively make the connection to any peer if we are complete
+ *  	- Incomplete peers can connect to us. 
+ *
+ */
 public class PeerManager {
+
+	public final int MAX_PEERS = 10; // TODO Future Task: Settings file
 	
 	Peer[] peers;
 	
 	FileManager fileManager;
 	SwarmManagerConnection smConn;
-	
 	ActiveConnectionManager connManager;
 	
 	Random random;
 	
-	public final int MAX_PEERS = 10; // TODO Future Change: Settings file
 	
 	public PeerManager(String swarmManagerHostname, int port, FileManager fileManager) throws PeerManagerException {
 		
@@ -42,9 +48,16 @@ public class PeerManager {
 		random = new Random();
 	}
 
-	public boolean run() throws PeerManagerException {
+	/**
+	 * Registers with the Swarm Manager, updates the peer list
+	 * and selects a peer to connect to if we haven't hit MAX_PEERS yet
+	 * 
+	 * @throws PeerManagerException thrown on connection problem with Swarm Manager.
+	 */
+	public void run() throws PeerManagerException {
 		pruneConnections();
 		
+		// TODO Future Task: Move SM registering to a different thread.
 		registerWithSwarmManager();
 		
 		updatePeerList();
@@ -62,10 +75,28 @@ public class PeerManager {
 					removePeer(selectedPeer);
 				}
 			}
-			
+		}
+	}
+
+	public void waitForPeers() {
+		connManager.stop();
+	}
+
+	public boolean complete() {
+		return connManager.complete();
+	}
+
+	private void updatePeerList() throws PeerManagerException {
+		
+		Peer[] peers;
+		
+		try {
+			peers = smConn.getPeerList(fileManager.metadata.metaHash);
+		} catch (IOException e) {
+			throw new PeerManagerException("Communication Error with Swarm Manager: " + e.getMessage());
 		}
 		
-		return true;
+		this.peers = peers;
 	}
 
 	private void removePeer(Peer selectedPeer) {
@@ -94,19 +125,6 @@ public class PeerManager {
 		} catch (IOException e) {
 			throw new PeerManagerException("Communication Error with Swarm Manager: " + e.getMessage());
 		}
-	}
-
-	public void updatePeerList() throws PeerManagerException {
-		
-		Peer[] peers;
-		
-		try {
-			peers = smConn.getPeerList(fileManager.metadata.metaHash);
-		} catch (IOException e) {
-			throw new PeerManagerException("Communication Error with Swarm Manager: " + e.getMessage());
-		}
-		
-		this.peers = peers;
 	}
 	
 	private Peer selectNewPeer(Peer[] peers) {
@@ -137,13 +155,4 @@ public class PeerManager {
 			return null;
 		}
 	}
-
-	public void waitForPeers() {
-		connManager.stop();
-	}
-
-	public boolean complete() {
-		return connManager.complete();
-	}
-
 }

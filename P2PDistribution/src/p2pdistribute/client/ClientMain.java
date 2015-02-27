@@ -17,22 +17,15 @@ import p2pdistribute.swarmmanager.SwarmManagerMain;
 public class ClientMain implements ChunkStatusChangeHandler {
 	public static final int SM_PORT = SwarmManagerMain.PORT;
 	
+	private static FileManager fileManager;
+	private static boolean shouldSeed;
+	private static String p2pMetaFile;
+	private static String outputDir;
+	
 	public static void main(String[] args) throws InterruptedException {
 		
 		if(!checkArgs(args)) {
 			return;
-		}
-		boolean seed = false;
-		String p2pMetaFile = args[0];
-		String outputDir = args[1];
-		
-		if(args.length == 3) {
-			if(args[0].equals("--seed")) {
-				System.out.println("Seed");
-				seed = true;
-			}
-			p2pMetaFile = args[1];
-			outputDir = args[2];
 		}
 		
 		P2PMetadata metadata = readP2PMetaFile(p2pMetaFile);
@@ -45,9 +38,7 @@ public class ClientMain implements ChunkStatusChangeHandler {
 			return;
 		}
 		
-		double percentage = ((double)fileManager.status.numChunksComplete() / fileManager.numChunks()) * 100;
-		
-		System.out.println("Download status: " + percentage + "%");
+		System.out.println("Download status: " + calculatePercentageCompletion() + "%");
 		
 		PeerManager peerManager;
 		try {
@@ -57,8 +48,8 @@ public class ClientMain implements ChunkStatusChangeHandler {
 			return;
 		}
 		
-		
-		while((!fileManager.complete()) || (!peerManager.complete()) || seed) {
+		while((!fileManager.complete()) || (!peerManager.complete()) || shouldSeed) {
+			
 			try {
 				peerManager.run(); 
 				
@@ -67,10 +58,21 @@ public class ClientMain implements ChunkStatusChangeHandler {
 				break;
 			}
 			
+			// Rate limit registering / retrieving peer list.
+			// TODO Future Task: Remove this sleep value when Swarm Manager registering etc is in a new thread.
 			Thread.sleep(500);
 		}
 		
 		peerManager.waitForPeers();
+	}
+
+	@Override
+	public void onChunkComplete(int fileid, int chunkid) {
+		System.out.println("Acquired chunk: " + fileid + "/" + chunkid + ". "  + calculatePercentageCompletion() + "% complete");
+	}
+
+	private static float calculatePercentageCompletion() {
+		return ((float)fileManager.status.numChunksComplete() / fileManager.numChunks()) * 100;
 	}
 	
 	private static FileManager setupFileManager(P2PMetadata metadata, String outputDir) {
@@ -95,6 +97,17 @@ public class ClientMain implements ChunkStatusChangeHandler {
 			printHelp();
 			return false;
 		}
+		p2pMetaFile = args[0];
+		outputDir = args[1];
+		
+		if(args.length == 3) {
+			if(args[0].equals("--seed")) {
+				System.out.println("Seeding. Manual program exit required.");
+				shouldSeed = true;
+			}
+			p2pMetaFile = args[1];
+			outputDir = args[2];
+		}
 		
 		return true;
 	}
@@ -104,7 +117,7 @@ public class ClientMain implements ChunkStatusChangeHandler {
 		System.out.println("Optional Usage: --seed <P2PMeta File> <Destination Folder>");
 	}
 
-	public static P2PMetadata readP2PMetaFile(String filename) {
+	private static P2PMetadata readP2PMetaFile(String filename) {
 		String fileContents;
 		try {
 			fileContents = FileUtils.readFileToString(new File(filename));
@@ -117,10 +130,5 @@ public class ClientMain implements ChunkStatusChangeHandler {
 		}
 		
 		return null;
-	}
-
-	@Override
-	public void onChunkComplete(int fileid, int chunkid) {
-		System.out.println("Acquired chunk: " + fileid + "/" + chunkid);
 	}
 }

@@ -2,7 +2,10 @@ package p2pdistribute.common.p2pmeta;
 
 import p2pdistribute.common.p2pmeta.chunk.ChunkMetadata;
 
-
+/**
+ * Stores the information about a File, as contained in a .p2pmeta file.
+ *
+ */
 public class FileMetadata {
 	public final String filename;
 	
@@ -10,14 +13,12 @@ public class FileMetadata {
 	
 	public final ChunkMetadata[] chunks;
 	
-	
 	public FileMetadata(String filename, byte[] fileHash, ChunkMetadata[] chunks) {
 		assert chunks != null;
 		
 		this.filename = filename;
 		this.fileHash = fileHash;
 		this.chunks = chunks;
-		
 	}
 	
 	public int getFileSize() {

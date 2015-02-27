@@ -2,6 +2,10 @@ package p2pdistribute.client.message;
 
 import p2pdistribute.common.message.JSONMessage;
 
+/**
+ * Stores all properties of a P2P ControlMessage
+ *
+ */
 public class ControlMessage extends Message {
 
 	public final JSONMessage payload;

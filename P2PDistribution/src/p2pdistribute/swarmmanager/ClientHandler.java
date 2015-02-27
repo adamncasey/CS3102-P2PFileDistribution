@@ -13,6 +13,9 @@ import p2pdistribute.common.message.SwarmManagerMessageParser;
 import p2pdistribute.common.message.SwarmManagerMessage;
 import p2pdistribute.common.p2pmeta.ParserException;
 
+/**
+ * Main Client handling code of the Swarm Manager program.
+ */
 public class ClientHandler implements Runnable {
 
 	private Socket client;
@@ -29,6 +32,10 @@ public class ClientHandler implements Runnable {
 		writer = new PrintWriter(client.getOutputStream());
 	}
 	
+	/**
+	 * Will attempt to read and process a message from the client socket 
+	 * until the socket errors or closes.
+	 */
 	@Override
 	public void run() {
 		while(!client.isClosed()) {
@@ -87,5 +94,4 @@ public class ClientHandler implements Runnable {
 		index.registerClient(client.getInetAddress(), msg.getPort(), msg.metaHash);
 		System.out.println("Registered client with SwarmIndex");
 	}
-
 }
