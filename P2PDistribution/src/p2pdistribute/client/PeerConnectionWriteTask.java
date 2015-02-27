@@ -22,7 +22,7 @@ public class PeerConnectionWriteTask implements Runnable {
 			try {
 				message = queue.take();
 			} catch (InterruptedException e) {
-				break;
+				return;
 			}
 			
 			try {

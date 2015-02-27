@@ -1,6 +1,7 @@
 package p2pdistribute.client;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -45,6 +46,18 @@ public class ActiveConnectionManager {
 	
 	public int getNumPeers() {
 		return connections.size();
+	}
+	
+	public void pruneConnections() {
+		Iterator<PeerConnection> iter = connections.iterator();
+		while(iter.hasNext()) {
+			PeerConnection conn = iter.next();
+			if(!conn.readThread.isAlive()) {
+				conn.stop();
+				
+				iter.remove();
+			}
+		}
 	}
 	
 	public void stop() {

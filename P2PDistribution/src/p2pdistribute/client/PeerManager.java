@@ -74,11 +74,12 @@ public class PeerManager {
 			}
 			newPeers[i++] = peer;
 		}
+		
+		this.peers = newPeers;
 	}
 
 	private void pruneConnections() {
-		// TODO Go through connections, see if any are complete or broken and remove them from list.
-		
+		connManager.pruneConnections();
 	}
 	
 	private void registerWithSwarmManager() throws PeerManagerException {
@@ -127,8 +128,6 @@ public class PeerManager {
 
 	public void waitForPeers() {
 		connManager.stop();
-		
-		// connManager.wait() ?
 	}
 
 	public boolean complete() {
