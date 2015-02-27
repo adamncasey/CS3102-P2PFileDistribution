@@ -69,7 +69,6 @@ public class PeerManager {
 	}
 
 	private void removePeer(Peer selectedPeer) {
-		// TODO Would be nice if peer was choked for only a limited time. 
 		
 		Peer[] newPeers = new Peer[this.peers.length - 1];
 		

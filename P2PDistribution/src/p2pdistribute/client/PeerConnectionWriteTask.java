@@ -16,7 +16,6 @@ public class PeerConnectionWriteTask implements Runnable {
 	
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		while(!Thread.interrupted()) {
 			byte[] message;
 			try {

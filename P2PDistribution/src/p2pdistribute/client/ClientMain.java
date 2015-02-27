@@ -63,7 +63,7 @@ public class ClientMain implements ChunkStatusChangeHandler {
 				peerManager.run(); 
 				
 			} catch(PeerManagerException e) {
-				System.err.println(e.getMessage()); //TODO Get more detail for print message?
+				System.err.println(e.getMessage());
 				break;
 			}
 			
@@ -71,8 +71,6 @@ public class ClientMain implements ChunkStatusChangeHandler {
 		}
 		
 		peerManager.waitForPeers();
-		
-		//System.out.println("Download complete");
 	}
 	
 	private static FileManager setupFileManager(P2PMetadata metadata, String outputDir) {

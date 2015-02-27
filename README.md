@@ -2,6 +2,13 @@ P2PDistribute
 =============
 A file distribution tool for fast, reliable transfers over an internal network and the general internet.
 
+Contents of Submission
+----------------------
+`Examples/` Contains Example JSON messages and example .p2pmeta files (initial swarm metadata - See Report 2.1)
+`P2PDistribute` Contains source code for Swarm Manager, Peer & Meta Generator.
+Results.xlsx - Predicted and Empirical data collected, also described in the Appendix.
+Report.pdf - Report + Appendices.
+
 How to distribute file(s)
 -------------------------
 
