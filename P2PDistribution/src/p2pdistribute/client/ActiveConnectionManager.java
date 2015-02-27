@@ -23,13 +23,13 @@ public class ActiveConnectionManager {
 		connections = new LinkedList<>();
 	}
 	
-	public void addPeer(PeerConnection peer) {
+	public synchronized void addPeer(PeerConnection peer) {
 		System.out.println("Added Peer: " + peer.sock.getInetAddress() + ":" + peer.sock.getLocalPort());
 		connections.add(peer);
 		
 	}
 	
-	public boolean contains(Peer peer) {
+	public synchronized boolean contains(Peer peer) {
 		
 		for(PeerConnection conn : connections) {
 			if(conn.peer.equals(peer)) {
@@ -48,7 +48,7 @@ public class ActiveConnectionManager {
 		return connections.size();
 	}
 	
-	public void pruneConnections() {
+	public synchronized void pruneConnections() {
 		Iterator<PeerConnection> iter = connections.iterator();
 		while(iter.hasNext()) {
 			PeerConnection conn = iter.next();
@@ -60,7 +60,7 @@ public class ActiveConnectionManager {
 		}
 	}
 	
-	public void stop() {
+	public synchronized void stop() {
 		listener.stop();
 		
 		for(PeerConnection conn : connections) {
@@ -68,7 +68,7 @@ public class ActiveConnectionManager {
 		}
 	}
 	
-	public boolean complete() {
+	public synchronized boolean complete() {
 
 		for(PeerConnection conn : connections) {
 			if(!conn.peerComplete()) {
