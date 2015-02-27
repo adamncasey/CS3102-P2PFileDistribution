@@ -2,16 +2,21 @@ package p2pdistribute.client.filemanager;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 public class AcquisitionStatus {
 
 	private Status[][] status;
 	private List<ChunkStatusChangeHandler> handlers;
 	
+	private Random random; // Used to select a random chunk
+	
 	public AcquisitionStatus(int numFiles) {
 		status = new Status[numFiles][];
 		
 		handlers = new LinkedList<>();
+		
+		random = new Random();
 	}
 	
 	public AcquisitionStatus(AcquisitionStatus copyStatus) {
@@ -26,6 +31,7 @@ public class AcquisitionStatus {
 		}
 		
 		handlers = new LinkedList<>();
+		random = new Random();
 	}
 	
 	public synchronized void registerHandler(ChunkStatusChangeHandler handler) {
@@ -131,6 +137,12 @@ public class AcquisitionStatus {
 			return null;
 		}
 		
+		// We want to gather a list of all possible IDs, then pick a random one from that list.
+		
+		// LinkedList poor for the random access we do at the end, but we need it for the fast insertion.
+		// TreeList could be a good route, but requires another library (apache commons collections).
+		List<int[]> chunks = new LinkedList<>();
+		
 		for(int i=0; i<status.length; i++) {
 			Status[] ourRow = status[i];
 			Status[] theirRow = peer.status[i];
@@ -143,20 +155,35 @@ public class AcquisitionStatus {
 				if(theirRow[j] == Status.COMPLETE) {
 					if(ourRow[j] != Status.COMPLETE && ourRow[j] != Status.INPROGRESS) {
 						ourRow[j] = Status.INPROGRESS;
-						return new int[] { i, j };
+						chunks.add(new int[] { i, j });
 					}
 				}
 			}
 		}
-		return null;
+		
+		if(chunks.size() == 0) {
+			return null;
+		}
+		
+		int index = random.nextInt(chunks.size());
+		
+		return chunks.get(index);
 	}
 	
 	public synchronized int[][] getCompleteFileChunkIDs() {
+		return getStatusFileChunkIDs(Status.COMPLETE);
+	}
+	
+	public synchronized int[][] getIncompleteFileChunkIDs() {
+		return getStatusFileChunkIDs(Status.INCOMPLETE);
+	}
+	
+	private int[][] getStatusFileChunkIDs(Status state) {
 		LinkedList<int[]> list = new LinkedList<>();
 		
 		for(int i=0; i<status.length; i++) {
 			for(int j=0; j<status[i].length; j++) {
-				if(status[i][j] == Status.COMPLETE) {
+				if(status[i][j] == state) {
 					list.add(new int[] { i, j});
 				}
 			}

@@ -2,6 +2,9 @@ package p2pdistribute.client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import p2pdistribute.client.filemanager.FileManager;
 import p2pdistribute.common.Peer;
@@ -15,6 +18,8 @@ public class PeerManager {
 	SwarmManagerConnection smConn;
 	
 	ActiveConnectionManager connManager;
+	
+	Random random;
 	
 	public final int MAX_PEERS = 10; // TODO Future Change: Settings file
 	
@@ -33,6 +38,8 @@ public class PeerManager {
 		} catch (IOException e) {
 			throw new PeerManagerException("Error occured initialising ConectionManager: " + e.getMessage());
 		}
+		
+		random = new Random();
 	}
 
 	public boolean run() throws PeerManagerException {
@@ -105,14 +112,20 @@ public class PeerManager {
 	
 	private Peer selectNewPeer(Peer[] peers) {
 		// Choose a peer we aren't already connected to.
-		
+		List<Peer> unconnectedPeers = new ArrayList<>(peers.length);
 		for(Peer peer : peers) {
 			if(!connManager.contains(peer)) {
-				return peer;
+				unconnectedPeers.add(peer);
 			}
 		}
 		
-		return null;
+		if(unconnectedPeers.size() == 0) {
+			return null;
+		}
+		
+		int index = random.nextInt(unconnectedPeers.size());
+		
+		return unconnectedPeers.get(index);
 	}
 	
 	private PeerConnection connectToPeer(Peer peer) {
